@@ -1,7 +1,6 @@
 import pandas as pd
-import numpy as np 
-import seaborn as sns
-import matplotlib.pyplot as plt 
+import numpy as np
+pd.options.mode.chained_assignment = None  # default='warn'
 
 location = 'dataset/Modified_dataset/'
 
@@ -26,9 +25,9 @@ df = pd.read_csv(location+'wildlife-collisions.csv',
                         'REPORTED_TITLE': object, 'REPORTED_DATE': object, 'SOURCE': object, 'PERSON': object, 'NR_INJURIES': float,
                         'NR_FATALITIES': float, 'LUPDATE': object, 'TRANSFER': bool, 'INDICATED_DAMAGE': bool})
 
-df = df.drop(['INDEX_NR', 'REG', 'FLT', 'INCIDENT_MONTH', 'INCIDENT_YEAR',
+#drops not needed columns
+df = df.drop(['INDEX_NR', 'REG', 'FLT', 'INCIDENT_MONTH', 'INCIDENT_YEAR', 'COMMENTS',
               'COST_REPAIRS_INFL_ADJ', 'COST_OTHER_INFL_ADJ', 'REPORTED_NAME', 'REPORTED_TITLE'], axis=1)
-
 '''
 removed:
 Unnamed: 0- unnecessary field
@@ -43,26 +42,77 @@ REPORTED_NAME- always empty
 REPORTED_TITLE- always empty
 '''
 
-df = df.drop(['OPID', 'AIRPORT_ID', 'SPECIES_ID'], axis=1)
+#replaces bad values with nan
+df = df.replace(r'', np.nan, regex=True)
+df = df.replace(r'UNKNOWN', np.nan, regex=True)
+df = df.replace(r'CHANGE CODE', np.nan, regex=True)
+df = df.replace(r'ZZZZ', np.nan, regex=True)
+
+#replaces names so they represent Airline operator code
+df.loc[df['OPID'] == "ASY", "OPERATOR"] = "Royal Australian Air Force"
+df.loc[df['OPID'] == "FDY", "OPERATOR"] = "Sun Air International"
+df.loc[df['OPID'] == "LTD", "OPERATOR"] = "Executive Express Aviation/JA Air Charter"
+df.loc[df['OPID'] == "SOI", "OPERATOR"] = "Southern Aviation"
+df.loc[df['OPID'] == "B-717IT", "OPERATOR"] = np.nan
+df.reset_index(drop=False)
+
+#fix airport id and name
+df.loc[df['AIRPORT_ID'] == "SPANISH PEAKS AIRFIELD", "AIRPORT"] = "SPANISH PEAKS AIRFIELD"
+df['AIRPORT_ID']['SPANISH PEAKS AIRFIELD'] = "4V1"
+
+#Converts object to datetime
+df['INCIDENT_DATE'] = pd.to_datetime(df['INCIDENT_DATE'])
+df['REPORTED_DATE'] = pd.to_datetime(df['REPORTED_DATE'], errors='coerce')
+df['LUPDATE'] = pd.to_datetime(df['LUPDATE'], errors='coerce')
+
+#drop nan values in INCIDENT_DATE
+df.dropna(subset=['INCIDENT_DATE'], inplace=True)
+
+#replaces names of TIME_OF_DAY with respective times and adds it to INCIDENT_DATE
+times = {'Night': '23:59', 'Dusk': '18:00', 'Day': '12:00', 'Dawn': '6:00', np.nan: '0:00', '': '0:00'}
+df['TIME_OF_DAY'] = df['TIME_OF_DAY'].apply(times.get)
+df['INCIDENT_DATE'] = pd.to_datetime(df['INCIDENT_DATE'].apply(str)+' '+df['TIME_OF_DAY'])
+df = df.drop(['TIME_OF_DAY'], axis=1)
+
+print(df['TIME'].abs() * 0.6)########################################################
+
+#Sorts values based on date and sets INCIDENT_DATE as index
+df = df.sort_values('INCIDENT_DATE')
+df = df.set_index('INCIDENT_DATE')
+
+#Writes to new file
+#df.to_csv(location+'wildlife-collisionsTest.csv', encoding = "utf-8")
+
+'''
+set values based on previous
+combine both tables
+DAMAGE: M? just replace with ?
+
+Unknown:
+    AIRPORT, RUNWAY, LOCATION, PHASE_OF_FLT, OTHER_SPECIFY,SPECIES
+missing values
+    ama, amo, ema, emo, AC_CLASS, AC_MASS, NUM_ENGS, TYPE_ENG, ENG_1_POS, ENG_2_POS,
+    ENG_3_POS, ENG_4_POS, REG, FLT,
+    TIME, AIRPORT, STATE, FAAREGION, ENROUTE, RUNWAY, LOCATION, HEIGHT, SPEED, DISTANCE, PHASE_OF_FLT,
+    DAMAGE, OTHER_SPECIFY, EFFECT, EFFECT_OTHER, SKY, PRECIP, SPECIES, SIZE, WARNED, REMARKS, AOS, COST_REPAIRS
+    COST_OTHER, COST_REPAIRS_INFL_ADJ, COST_OTHER_INFL_ADJ, REPORTED_DATE, SOURCE, PERSON, NR_INJURIES,
+    NR_FATALITIES, LUPDATE
+TIME: has minus values
+FLT, LOCATION, OTHER_SPECIFY: search- unk
+RUNWAY, EFFECT_OTHER: random values contains dates and so much more
+SPECIES_ID, SPECIES: UNKB-m,s,l
+BIRDS_SEEN, BIRDS_STRUCK: random date and over 100
+'''
+
+#df[1].fillna(0, inplace=True)
+
+
+
+
+#df = df.drop(['OPID', 'AIRPORT_ID', 'SPECIES_ID'], axis=1)
 '''
 removed:
 OPID- Airline operator code
 AIRPORT_ID- International Civil Aviation Organization airport identifier for location of strike whether it was on or off airport
 SPECIES_ID- International Civil Aviation Organization code for type of bird or other wildlife
 '''
-
-df = df.replace(r'UNKNOWN', np.nan, regex=True)
-#ENG_3_POS CHANGE CODE
-#BIRDS_SEEN, BIRDS_STRUCK over 100
-#in some places some random #name?
-#location - and '
-
-
-#print(df[173601:173620])
-#print('////////////////////////////////////////////////////////////////////')
-#print(df.describe(include=['object']))
-corr = df.corr()
-_, ax = plt.subplots(figsize=(8,6))
-sns.heatmap(corr, ax=ax,xticklabels=corr.columns.values,yticklabels=corr.columns.values)
-#del df[1]
-#df = df.sort_values('Unnamed: 0')
