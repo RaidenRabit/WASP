@@ -26,25 +26,29 @@ df = pd.read_csv(location+'wildlife-collisions.csv',
                         'NR_FATALITIES': float, 'LUPDATE': object, 'TRANSFER': bool, 'INDICATED_DAMAGE': bool})
 
 #drops not needed columns
-df = df.drop(['INDEX_NR', 'REG', 'FLT', 'INCIDENT_MONTH', 'INCIDENT_YEAR', 'COMMENTS',
+df = df.drop(['INDEX_NR', 'REG', 'FLT', 'INCIDENT_MONTH', 'INCIDENT_YEAR', 'COMMENTS', 'TRANSFER', 'NUM_ENGS',
               'COST_REPAIRS_INFL_ADJ', 'COST_OTHER_INFL_ADJ', 'REPORTED_NAME', 'REPORTED_TITLE'], axis=1)
 '''
 removed:
-Unnamed: 0- unnecessary field
-INDEX_NR- Individual record number
-REG- Aircraft registration
-FLT- Flight number
-INCIDENT_MONTH- already provided in INCIDENT_DATE
-INCIDENT_YEAR- already provided in INCIDENT_DATE
-COST_REPAIRS_INFL_ADJ- Costs adjusted for inflation (can be self calculated)
-COST_OTHER_INFL_ADJ- Other cost adjusted for inflation (can be self calculated)
-REPORTED_NAME- always empty
-REPORTED_TITLE- always empty
+    Unnamed: 0- unnecessary field
+    INDEX_NR- Individual record number
+    REG- Aircraft registration
+    FLT- Flight number
+    INCIDENT_MONTH- already provided in INCIDENT_DATE
+    INCIDENT_YEAR- already provided in INCIDENT_DATE
+    COMMENTS- As entered by database manager. Can include name of aircraft owner, types of reports received, updates, etc.
+    TRANSFER- Unused field at this time
+    NUM_ENGS- no need couse can be seen
+    COST_REPAIRS_INFL_ADJ- Costs adjusted for inflation (can be self calculated)
+    COST_OTHER_INFL_ADJ- Other cost adjusted for inflation (can be self calculated)
+    REPORTED_NAME- always empty
+    REPORTED_TITLE- always empty
 '''
 
 #replaces bad values with nan
 df = df.replace(r'', np.nan, regex=True)
 df = df.replace(r'UNKNOWN', np.nan, regex=True)
+df = df.replace(r'UNK', np.nan, regex=True)
 df = df.replace(r'CHANGE CODE', np.nan, regex=True)
 df = df.replace(r'ZZZZ', np.nan, regex=True)
 
@@ -59,60 +63,47 @@ df.reset_index(drop=False)
 #fix airport id and name
 df.loc[df['AIRPORT_ID'] == "SPANISH PEAKS AIRFIELD", "AIRPORT"] = "SPANISH PEAKS AIRFIELD"
 df['AIRPORT_ID']['SPANISH PEAKS AIRFIELD'] = "4V1"
+df.loc[df['AIRPORT_ID'] == "KLUK", "AIRPORT"] = "CINCINNATI MUNICIPAL"
+df.loc[df['AIRPORT_ID'] == "KDKK", "AIRPORT"] = "CHAUTAUQUA-DUNKIRK"
+
+#replace values so it is easyer to understand
+df['DAMAGE']['M?'] = "?"
+df['NR_INJURIES'].fillna(0, inplace=True)
+df['NR_FATALITIES'].fillna(0, inplace=True)
+df['PERSON'].fillna('Other', inplace=True)
 
 #Converts object to datetime
 df['INCIDENT_DATE'] = pd.to_datetime(df['INCIDENT_DATE'])
 df['REPORTED_DATE'] = pd.to_datetime(df['REPORTED_DATE'], errors='coerce')
 df['LUPDATE'] = pd.to_datetime(df['LUPDATE'], errors='coerce')
 
-#drop nan values in INCIDENT_DATE
+#drop nan rows in INCIDENT_DATE
 df.dropna(subset=['INCIDENT_DATE'], inplace=True)
 
-#replaces names of TIME_OF_DAY with respective times and adds it to INCIDENT_DATE
-times = {'Night': '23:59', 'Dusk': '18:00', 'Day': '12:00', 'Dawn': '6:00', np.nan: '0:00', '': '0:00'}
+#fixes INCIDENT_DATE based on given info
+times = {'Night': '23:59', 'Dusk': '18:00', 'Day': '12:00', 'Dawn': '6:00'}
 df['TIME_OF_DAY'] = df['TIME_OF_DAY'].apply(times.get)
-df['INCIDENT_DATE'] = pd.to_datetime(df['INCIDENT_DATE'].apply(str)+' '+df['TIME_OF_DAY'])
+df['TIME'] = pd.to_datetime((df['TIME'].abs() // 100 * 60) + (df['TIME'].abs() % 100), unit='m')
+df['TIME'] = df['TIME'].astype(str).str.extract('(..:..)', expand=True)
+df['TIME'].fillna(df['TIME_OF_DAY'], inplace=True)
+df['TIME'] = df['TIME'].replace(np.nan, '0:00', regex=True)
+df['INCIDENT_DATE'] = pd.to_datetime(df['INCIDENT_DATE'].apply(str)+' '+df['TIME'])
+df = df.drop(['TIME'], axis=1)
 df = df.drop(['TIME_OF_DAY'], axis=1)
-
-print(df['TIME'].abs() * 0.6)########################################################
 
 #Sorts values based on date and sets INCIDENT_DATE as index
 df = df.sort_values('INCIDENT_DATE')
 df = df.set_index('INCIDENT_DATE')
 
 #Writes to new file
-#df.to_csv(location+'wildlife-collisionsTest.csv', encoding = "utf-8")
+df.to_csv(location+'wildlife-collisions-Modified.csv', encoding = "utf-8")
 
-'''
-set values based on previous
-combine both tables
-DAMAGE: M? just replace with ?
-
-Unknown:
-    AIRPORT, RUNWAY, LOCATION, PHASE_OF_FLT, OTHER_SPECIFY,SPECIES
-missing values
-    ama, amo, ema, emo, AC_CLASS, AC_MASS, NUM_ENGS, TYPE_ENG, ENG_1_POS, ENG_2_POS,
-    ENG_3_POS, ENG_4_POS, REG, FLT,
-    TIME, AIRPORT, STATE, FAAREGION, ENROUTE, RUNWAY, LOCATION, HEIGHT, SPEED, DISTANCE, PHASE_OF_FLT,
-    DAMAGE, OTHER_SPECIFY, EFFECT, EFFECT_OTHER, SKY, PRECIP, SPECIES, SIZE, WARNED, REMARKS, AOS, COST_REPAIRS
-    COST_OTHER, COST_REPAIRS_INFL_ADJ, COST_OTHER_INFL_ADJ, REPORTED_DATE, SOURCE, PERSON, NR_INJURIES,
-    NR_FATALITIES, LUPDATE
-TIME: has minus values
-FLT, LOCATION, OTHER_SPECIFY: search- unk
-RUNWAY, EFFECT_OTHER: random values contains dates and so much more
-SPECIES_ID, SPECIES: UNKB-m,s,l
-BIRDS_SEEN, BIRDS_STRUCK: random date and over 100
-'''
-
-#df[1].fillna(0, inplace=True)
-
-
-
+print('Done!')
 
 #df = df.drop(['OPID', 'AIRPORT_ID', 'SPECIES_ID'], axis=1)
 '''
 removed:
-OPID- Airline operator code
-AIRPORT_ID- International Civil Aviation Organization airport identifier for location of strike whether it was on or off airport
-SPECIES_ID- International Civil Aviation Organization code for type of bird or other wildlife
+    OPID- Airline operator code
+    AIRPORT_ID- International Civil Aviation Organization airport identifier for location of strike whether it was on or off airport
+    SPECIES_ID- International Civil Aviation Organization code for type of bird or other wildlife
 '''
