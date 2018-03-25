@@ -25,26 +25,6 @@ df = pd.read_csv(location+'wildlife-collisions.csv',
                         'REPORTED_TITLE': object, 'REPORTED_DATE': object, 'SOURCE': object, 'PERSON': object, 'NR_INJURIES': float,
                         'NR_FATALITIES': float, 'LUPDATE': object, 'TRANSFER': bool, 'INDICATED_DAMAGE': bool})
 
-#drops not needed columns
-df = df.drop(['INDEX_NR', 'REG', 'FLT', 'INCIDENT_MONTH', 'INCIDENT_YEAR', 'COMMENTS', 'TRANSFER', 'NUM_ENGS',
-              'COST_REPAIRS_INFL_ADJ', 'COST_OTHER_INFL_ADJ', 'REPORTED_NAME', 'REPORTED_TITLE'], axis=1)
-'''
-removed:
-    Unnamed: 0- unnecessary field
-    INDEX_NR- Individual record number
-    REG- Aircraft registration
-    FLT- Flight number
-    INCIDENT_MONTH- already provided in INCIDENT_DATE
-    INCIDENT_YEAR- already provided in INCIDENT_DATE
-    COMMENTS- As entered by database manager. Can include name of aircraft owner, types of reports received, updates, etc.
-    TRANSFER- Unused field at this time
-    NUM_ENGS- no need couse can be seen
-    COST_REPAIRS_INFL_ADJ- Costs adjusted for inflation (can be self calculated)
-    COST_OTHER_INFL_ADJ- Other cost adjusted for inflation (can be self calculated)
-    REPORTED_NAME- always empty
-    REPORTED_TITLE- always empty
-'''
-
 #replaces bad values with nan
 df = df.replace(r'', np.nan, regex=True)
 df = df.replace(r'UNKNOWN', np.nan, regex=True)
@@ -62,20 +42,23 @@ df.reset_index(drop=False)
 
 #fix airport id and name
 df.loc[df['AIRPORT_ID'] == "SPANISH PEAKS AIRFIELD", "AIRPORT"] = "SPANISH PEAKS AIRFIELD"
-df['AIRPORT_ID']['SPANISH PEAKS AIRFIELD'] = "4V1"
+df['AIRPORT_ID'].replace('SPANISH PEAKS AIRFIELD', "4V1")
 df.loc[df['AIRPORT_ID'] == "KLUK", "AIRPORT"] = "CINCINNATI MUNICIPAL"
 df.loc[df['AIRPORT_ID'] == "KDKK", "AIRPORT"] = "CHAUTAUQUA-DUNKIRK"
 
 #replace values so it is easyer to understand
-df['DAMAGE']['M?'] = "?"
+df['DAMAGE'].replace('M?', "?")
 df['NR_INJURIES'].fillna(0, inplace=True)
 df['NR_FATALITIES'].fillna(0, inplace=True)
 df['PERSON'].fillna('Other', inplace=True)
 
+df['SKY'].replace('Some Cloud', "Some Clouds")
+df['SKY'].replace('No Cloud', "No Clouds")
+
 #Converts object to datetime
 df['INCIDENT_DATE'] = pd.to_datetime(df['INCIDENT_DATE'])
-df['REPORTED_DATE'] = pd.to_datetime(df['REPORTED_DATE'], errors='coerce')
-df['LUPDATE'] = pd.to_datetime(df['LUPDATE'], errors='coerce')
+'''df['REPORTED_DATE'] = pd.to_datetime(df['REPORTED_DATE'], errors='coerce')
+df['LUPDATE'] = pd.to_datetime(df['LUPDATE'], errors='coerce')'''
 
 #drop nan rows in INCIDENT_DATE
 df.dropna(subset=['INCIDENT_DATE'], inplace=True)
@@ -95,15 +78,54 @@ df = df.drop(['TIME_OF_DAY'], axis=1)
 df = df.sort_values('INCIDENT_DATE')
 df = df.set_index('INCIDENT_DATE')
 
+#drops not needed columns
+df = df.drop(['INDEX_NR', 'REG', 'FLT', 'INCIDENT_MONTH', 'INCIDENT_YEAR', 'COMMENTS', 
+              'TRANSFER', 'COST_REPAIRS_INFL_ADJ', 'COST_OTHER_INFL_ADJ', 
+              'REPORTED_NAME', 'REPORTED_TITLE'], axis=1)
+
+'''
+removed:
+    Unnamed: 0- unnecessary field
+    INDEX_NR- Individual record number
+    REG- Aircraft registration
+    FLT- Flight number
+    INCIDENT_MONTH- already provided in INCIDENT_DATE
+    INCIDENT_YEAR- already provided in INCIDENT_DATE
+    COMMENTS- As entered by database manager. Can include name of aircraft owner, types of reports received, updates, etc.
+    TRANSFER- Unused field at this time
+    COST_REPAIRS_INFL_ADJ- Costs adjusted for inflation (can be self calculated)
+    COST_OTHER_INFL_ADJ- Other cost adjusted for inflation (can be self calculated)
+    REPORTED_NAME- always empty
+    REPORTED_TITLE- always empty
+'''
+
+df = df.drop(['OPID', 'AMO', 'EMO', 'ENG_1_POS', 'ENG_2_POS', 'ENG_3_POS', 'ENG_4_POS',
+              'REMAINS_COLLECTED', 'REMAINS_SENT', 'AIRPORT_ID', 'FAAREGION', 'RUNWAY', 
+              'LOCATION', 'OTHER_SPECIFY', 'EFFECT_OTHER', 'SPECIES_ID', 'REMARKS', 'REPORTED_DATE',
+              'SOURCE', 'PERSON', 'LUPDATE'], axis=1)
+'''
+removed:
+    OPID- Airline operator code
+    AMO- International Civil Aviation Organization code for Aircraft Model 
+    EMO- Engine Model Code
+    ENG_1-4_POS- Where engine is mounted  on aircraft
+    REMAINS_COLLECTED- Indicates if bird or wildlife remains were found and collected
+    REMAINS_SENT- Indicates if remains were sent to the Smithsonian Institution for identifcation
+    AIRPORT_ID- International Civil Aviation Organization airport identifier for location of strike whether it was on or off airport
+    FAAREGION- FAA Region where airport is located
+    RUNWAY- Runway
+    LOCATION- Various information about aircraft location if enroute or airport where strike evidence was found. Some locations show the two airports for the flight departure and arrival if pilot was unaware of the strike.
+    OTHER_SPECIFY- What part was struck other than those listed above
+    EFFECT_OTHER- Effect on flight other than those listed on the form
+    SPECIES_ID- International Civil Aviation Organization code for type of bird or other wildlife
+    REMARKS- Most of remarks are from the form but some are data entry notes and are usually in parentheses.
+    REPORTED_DATE- Date report was written
+    SOURCE- Type of report. Note: for multiple types of reports this will be indicated as Multiple.  See "Comments" field for details
+    PERSON- Only one selection allowed. For multiple reports, see field "Reported Title"
+    LUPDATE- Last time record was updated
+'''
+
 #Writes to new file
 df.to_csv(location+'wildlife-collisions-Modified.csv', encoding = "utf-8")
 
 print('Done!')
-
-#df = df.drop(['OPID', 'AIRPORT_ID', 'SPECIES_ID'], axis=1)
-'''
-removed:
-    OPID- Airline operator code
-    AIRPORT_ID- International Civil Aviation Organization airport identifier for location of strike whether it was on or off airport
-    SPECIES_ID- International Civil Aviation Organization code for type of bird or other wildlife
-'''
