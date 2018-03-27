@@ -1,8 +1,9 @@
 import pandas as pd
+import os
 
-location = 'dataset/'
+os.chdir('C:/Users/bubri/Desktop/Project/dataset/') # Set working directory
 
-df1990_1999 = pd.read_csv(location+'Extracted_dataset/STRIKE_REPORTS (1990-1999).csv', 
+df1990_1999 = pd.read_csv('Extracted_dataset/STRIKE_REPORTS (1990-1999).csv', 
                  encoding = "ISO-8859-1",
                  dtype={'INDEX_NR': int, 'OPID': object, 'OPERATOR': object, 'ATYPE': object, 'AMA': object,
                         'AMO': object, 'EMA': object, 'EMO': object, 'AC_CLASS': object, 'AC_MASS': float, 
@@ -25,7 +26,7 @@ df1990_1999 = pd.read_csv(location+'Extracted_dataset/STRIKE_REPORTS (1990-1999)
                         'NR_FATALITIES': float, 'LUPDATE': object, 'TRANSFER': bool, 'INDICATED_DAMAGE': bool})
 
 
-df2000_2009 = pd.read_csv(location+'Extracted_dataset/STRIKE_REPORTS (2000-2009).csv', 
+df2000_2009 = pd.read_csv('Extracted_dataset/STRIKE_REPORTS (2000-2009).csv', 
                  encoding = "ISO-8859-1",
                  dtype={'INDEX_NR': int, 'OPID': object, 'OPERATOR': object, 'ATYPE': object, 'AMA': object,
                         'AMO': object, 'EMA': object, 'EMO': object, 'AC_CLASS': object, 'AC_MASS': float, 
@@ -47,7 +48,7 @@ df2000_2009 = pd.read_csv(location+'Extracted_dataset/STRIKE_REPORTS (2000-2009)
                         'REPORTED_TITLE': object, 'REPORTED_DATE': object, 'SOURCE': object, 'PERSON': object, 'NR_INJURIES': float,
                         'NR_FATALITIES': float, 'LUPDATE': object, 'TRANSFER': bool, 'INDICATED_DAMAGE': bool})
 
-df2010_Current = pd.read_csv(location+'Extracted_dataset/STRIKE_REPORTS (2010-Current).csv', 
+df2010_Current = pd.read_csv('Extracted_dataset/STRIKE_REPORTS (2010-Current).csv', 
                  encoding = "ISO-8859-1",
                  dtype={'INDEX_NR': int, 'OPID': object, 'OPERATOR': object, 'ATYPE': object, 'AMA': object,
                         'AMO': object, 'EMA': object, 'EMO': object, 'AC_CLASS': object, 'AC_MASS': float, 
@@ -69,7 +70,7 @@ df2010_Current = pd.read_csv(location+'Extracted_dataset/STRIKE_REPORTS (2010-Cu
                         'REPORTED_TITLE': object, 'REPORTED_DATE': object, 'SOURCE': object, 'PERSON': object, 'NR_INJURIES': float,
                         'NR_FATALITIES': float, 'LUPDATE': object, 'TRANSFER': bool, 'INDICATED_DAMAGE': bool})
 
-dfMilitary = pd.read_csv(location+'Extracted_dataset/STRIKE_REPORTS_BASH (1990-Current).csv', 
+dfMilitary = pd.read_csv('Extracted_dataset/STRIKE_REPORTS_BASH (1990-Current).csv', 
                  encoding = "ISO-8859-1",
                  dtype={'INDEX_NR': int, 'OPID': object, 'OPERATOR': object, 'ATYPE': object, 'AMA': object,
                         'AMO': object, 'EMA': object, 'EMO': object, 'AC_CLASS': object, 'AC_MASS': float, 
@@ -97,6 +98,6 @@ result = pd.concat(frames)
 
 result = result.set_index('INDEX_NR')
 
-result.to_csv(location+'Modified_dataset/wildlife-collisions.csv', encoding = "utf-8")
+result.to_csv('Modified_dataset/wildlife-collisions.csv', encoding = "utf-8")
 
 print('done!')

@@ -1,29 +1,30 @@
 import pandas as pd
 import numpy as np
+import os
 pd.options.mode.chained_assignment = None  # default='warn'
 
-location = 'dataset/Modified_dataset/'
+os.chdir('C:/Users/bubri/Desktop/Project/dataset/Modified_dataset/') # Set working directory
 
-df = pd.read_csv(location+'wildlife-collisions.csv',
+df = pd.read_csv('wildlife-collisions.csv',
                  dtype={'INDEX_NR': int, 'OPID': object, 'OPERATOR': object, 'ATYPE': object, 'AMA': object,
                         'AMO': object, 'EMA': object, 'EMO': object, 'AC_CLASS': object, 'AC_MASS': float, 
                         'NUM_ENGS': float, 'TYPE_ENG': object, 'ENG_1_POS': object, 'ENG_2_POS': float, 'ENG_3_POS': object, 
-                        'ENG_4_POS': float, 'REG': object, 'FLT': object, 'REMAINS_COLLECTED': bool, 'REMAINS_SENT': bool, 
+                        'ENG_4_POS': float, 'REG': object, 'FLT': object, 'REMAINS_COLLECTED': int, 'REMAINS_SENT': int, 
                         'INCIDENT_DATE': object, 'INCIDENT_MONTH': float, 'INCIDENT_YEAR': float, 'TIME_OF_DAY': object, 'TIME': float, 
                         'AIRPORT_ID': object, 'AIRPORT': object, 'STATE': object, 'FAAREGION': object, 'ENROUTE': object, 
                         'RUNWAY': object, 'LOCATION': object, 'HEIGHT': float, 'SPEED': float, 'DISTANCE': float, 
-                        'PHASE_OF_FLT': object, 'DAMAGE': object, 'STR_RAD': bool, 'DAM_RAD': bool, 'STR_WINDSHLD': bool, 
-                        'DAM_WINDSHLD': bool, 'STR_NOSE': bool, 'DAM_NOSE': bool, 'STR_ENG1': bool, 'DAM_ENG1': bool, 
-                        'STR_ENG2': bool, 'DAM_ENG2': bool, 'STR_ENG3': bool, 'DAM_ENG3': bool, 'STR_ENG4': bool, 
-                        'DAM_ENG4': bool, 'INGESTED': bool, 'STR_PROP': bool, 'DAM_PROP': bool, 'STR_WING_ROT': bool, 
-                        'DAM_WING_ROT': bool, 'STR_FUSE': bool, 'DAM_FUSE': bool, 'STR_LG': bool, 'DAM_LG': bool,
-                        'STR_TAIL': bool, 'DAM_TAIL': bool, 'STR_LGHTS': bool, 'DAM_LGHTS': bool, 'STR_OTHER': bool,
-                        'DAM_OTHER': bool, 'OTHER_SPECIFY': object, 'EFFECT': object, 'EFFECT_OTHER': object, 'SKY': object,
+                        'PHASE_OF_FLT': object, 'DAMAGE': object, 'STR_RAD': int, 'DAM_RAD': int, 'STR_WINDSHLD': int, 
+                        'DAM_WINDSHLD': int, 'STR_NOSE': int, 'DAM_NOSE': int, 'STR_ENG1': int, 'DAM_ENG1': int, 
+                        'STR_ENG2': int, 'DAM_ENG2': int, 'STR_ENG3': int, 'DAM_ENG3': int, 'STR_ENG4': int, 
+                        'DAM_ENG4': int, 'INGESTED': int, 'STR_PROP': int, 'DAM_PROP': int, 'STR_WING_ROT': int, 
+                        'DAM_WING_ROT': int, 'STR_FUSE': int, 'DAM_FUSE': int, 'STR_LG': int, 'DAM_LG': int,
+                        'STR_TAIL': int, 'DAM_TAIL': int, 'STR_LGHTS': int, 'DAM_LGHTS': int, 'STR_OTHER': int,
+                        'DAM_OTHER': int, 'OTHER_SPECIFY': object, 'EFFECT': object, 'EFFECT_OTHER': object, 'SKY': object,
                         'PRECIP': object, 'SPECIES_ID': object, 'SPECIES': object, 'BIRDS_SEEN': object, 'BIRDS_STRUCK': object,
                         'SIZE': object, 'WARNED': object, 'COMMENTS': object, 'REMARKS': object, 'AOS': float,
                         'COST_REPAIRS': float, 'COST_OTHER': float, 'COST_REPAIRS_INFL_ADJ': float, 'COST_OTHER_INFL_ADJ': float, 'REPORTED_NAME': object,
                         'REPORTED_TITLE': object, 'REPORTED_DATE': object, 'SOURCE': object, 'PERSON': object, 'NR_INJURIES': float,
-                        'NR_FATALITIES': float, 'LUPDATE': object, 'TRANSFER': bool, 'INDICATED_DAMAGE': bool})
+                        'NR_FATALITIES': float, 'LUPDATE': object, 'TRANSFER': int, 'INDICATED_DAMAGE': int})
 
 #replaces bad values with nan
 df = df.replace(r'', np.nan, regex=True)
@@ -47,13 +48,25 @@ df.loc[df['AIRPORT_ID'] == "KLUK", "AIRPORT"] = "CINCINNATI MUNICIPAL"
 df.loc[df['AIRPORT_ID'] == "KDKK", "AIRPORT"] = "CHAUTAUQUA-DUNKIRK"
 
 #replace values so it is easyer to understand
-df['DAMAGE'].replace('M?', "?")
 df['NR_INJURIES'].fillna(0, inplace=True)
 df['NR_FATALITIES'].fillna(0, inplace=True)
-df['PERSON'].fillna('Other', inplace=True)
-
-df['SKY'].replace('Some Cloud', "Some Clouds")
-df['SKY'].replace('No Cloud', "No Clouds")
+#df['PERSON'].fillna('Other', inplace=True)
+df['DAMAGE'] = df['DAMAGE'].replace('M?', "?")
+df['SIZE'] = df['SIZE'].str.lower().replace(r'small', "Small")
+df['SIZE'] = df['SIZE'].str.lower().replace(r'medium', "Medium")
+df['SIZE'] = df['SIZE'].str.lower().replace(r'large', "Large")
+df['SPECIES'] = (df['SPECIES'].str.lower()).str.title()
+df['EFFECT'] = (df['EFFECT'].str.lower()).str.title()
+df['SKY'] = df['SKY'].str.replace(r'S[Oo]me Clouds?', "Some Clouds")
+df['SKY'] = df['SKY'].str.replace(r'N[Oo] C[Ll]ouds?s?', "No Clouds")
+df['PRECIP'] = df['PRECIP'].replace('NoNe', "None")
+df['EFFECT'] = df['EFFECT'].replace('NONE', "None")
+df['PHASE_OF_FLT'] = df['PHASE_OF_FLT'].replace('take-off run', "Take-off run")
+df['PHASE_OF_FLT'] = df['PHASE_OF_FLT'].str.replace(r'[Ll]anding roll', "Landing roll")
+df['PHASE_OF_FLT'] = df['PHASE_OF_FLT'].replace('unknown', "Unknown")
+df['PHASE_OF_FLT'] = df['PHASE_OF_FLT'].replace('approach', "Approach")
+df['PHASE_OF_FLT'] = df['PHASE_OF_FLT'].replace('climb', "Climb")
+df['PHASE_OF_FLT'] = df['PHASE_OF_FLT'].replace('descent', "Descent")
 
 #Converts object to datetime
 df['INCIDENT_DATE'] = pd.to_datetime(df['INCIDENT_DATE'])
@@ -101,8 +114,8 @@ removed:
 
 df = df.drop(['OPID', 'AMO', 'EMO', 'ENG_1_POS', 'ENG_2_POS', 'ENG_3_POS', 'ENG_4_POS',
               'REMAINS_COLLECTED', 'REMAINS_SENT', 'AIRPORT_ID', 'FAAREGION', 'RUNWAY', 
-              'LOCATION', 'OTHER_SPECIFY', 'EFFECT_OTHER', 'SPECIES_ID', 'REMARKS', 'REPORTED_DATE',
-              'SOURCE', 'PERSON', 'LUPDATE'], axis=1)
+              'LOCATION', 'OTHER_SPECIFY', 'EFFECT_OTHER', 'SPECIES_ID', 'REMARKS', 
+              'REPORTED_DATE', 'SOURCE', 'PERSON', 'LUPDATE'], axis=1)
 '''
 removed:
     OPID- Airline operator code
@@ -126,6 +139,6 @@ removed:
 '''
 
 #Writes to new file
-df.to_csv(location+'wildlife-collisions-Modified.csv', encoding = "utf-8")
+df.to_csv('wildlife-collisions-Modified.csv', encoding = "utf-8")
 
 print('Done!')
