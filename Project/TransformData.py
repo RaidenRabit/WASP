@@ -1,3 +1,7 @@
+'''
+Files porpuse is to fix values and remove not needed information
+'''
+
 import pandas as pd
 import numpy as np
 import os
@@ -39,7 +43,7 @@ df.loc[df['OPID'] == "FDY", "OPERATOR"] = "Sun Air International"
 df.loc[df['OPID'] == "LTD", "OPERATOR"] = "Executive Express Aviation/JA Air Charter"
 df.loc[df['OPID'] == "SOI", "OPERATOR"] = "Southern Aviation"
 df.loc[df['OPID'] == "B-717IT", "OPERATOR"] = np.nan
-df.reset_index(drop=False)
+#df.reset_index(drop=False) dont delete
 
 #fix airport id and name
 df.loc[df['AIRPORT_ID'] == "SPANISH PEAKS AIRFIELD", "AIRPORT"] = "SPANISH PEAKS AIRFIELD"
@@ -47,10 +51,10 @@ df['AIRPORT_ID'].replace('SPANISH PEAKS AIRFIELD', "4V1")
 df.loc[df['AIRPORT_ID'] == "KLUK", "AIRPORT"] = "CINCINNATI MUNICIPAL"
 df.loc[df['AIRPORT_ID'] == "KDKK", "AIRPORT"] = "CHAUTAUQUA-DUNKIRK"
 
-#replace values so it is easyer to understand
-df['NR_INJURIES'].fillna(0, inplace=True)
-df['NR_FATALITIES'].fillna(0, inplace=True)
-#df['PERSON'].fillna('Other', inplace=True)
+#Converts object values to int
+df['WARNED'] = df['WARNED'].map({'Y': 1, 'N': 0, 'y': 1, 'n': 0})
+
+#replaces values so they are easyer to understand and use
 df['DAMAGE'] = df['DAMAGE'].replace('M?', "?")
 df['SIZE'] = df['SIZE'].str.lower().replace(r'small', "Small")
 df['SIZE'] = df['SIZE'].str.lower().replace(r'medium', "Medium")
@@ -87,11 +91,8 @@ df['INCIDENT_DATE'] = pd.to_datetime(df['INCIDENT_DATE'].apply(str)+' '+df['TIME
 df = df.drop(['TIME'], axis=1)
 df = df.drop(['TIME_OF_DAY'], axis=1)
 
-#Sorts values based on date and sets INCIDENT_DATE as index
-df = df.sort_values('INCIDENT_DATE')
-df = df.set_index('INCIDENT_DATE')
-
-#drops not needed columns
+#drops not needed columns:
+#Information here is compleatly useless
 df = df.drop(['INDEX_NR', 'REG', 'FLT', 'INCIDENT_MONTH', 'INCIDENT_YEAR', 'COMMENTS', 
               'TRANSFER', 'COST_REPAIRS_INFL_ADJ', 'COST_OTHER_INFL_ADJ', 
               'REPORTED_NAME', 'REPORTED_TITLE'], axis=1)
@@ -111,7 +112,7 @@ removed:
     REPORTED_NAME- always empty
     REPORTED_TITLE- always empty
 '''
-
+#Information here could be used later if needed
 df = df.drop(['OPID', 'AMO', 'EMO', 'ENG_1_POS', 'ENG_2_POS', 'ENG_3_POS', 'ENG_4_POS',
               'REMAINS_COLLECTED', 'REMAINS_SENT', 'AIRPORT_ID', 'FAAREGION', 'RUNWAY', 
               'LOCATION', 'OTHER_SPECIFY', 'EFFECT_OTHER', 'SPECIES_ID', 'REMARKS', 
@@ -137,6 +138,10 @@ removed:
     PERSON- Only one selection allowed. For multiple reports, see field "Reported Title"
     LUPDATE- Last time record was updated
 '''
+
+#Sorts values based on date and sets INCIDENT_DATE as index
+df = df.sort_values('INCIDENT_DATE')
+df = df.set_index('INCIDENT_DATE')
 
 #Writes to new file
 df.to_csv('wildlife-collisions-Modified.csv', encoding = "utf-8")

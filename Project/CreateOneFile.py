@@ -1,3 +1,7 @@
+'''
+File merges all information in one easaly readable and understandable dataset
+'''
+
 import pandas as pd
 import os
 
