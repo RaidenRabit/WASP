@@ -10,14 +10,14 @@ import os
 os.chdir('C:/Users/bubri/Desktop/Project/dataset/Modified_dataset/') # Set working directory
 
 df = pd.read_csv('wildlife-collisions-Modified.csv',
-                 dtype={'INCIDENT_DATE': object, 'OPERATOR': object, 'ATYPE': object, 'AMA': object,
-                        'EMA': object, 'AC_CLASS': object, 'AC_MASS': float, 'NUM_ENGS': float, 
-                        'TYPE_ENG': object, 'AIRPORT': object, 'STATE': object, 'ENROUTE': object, 
-                        'HEIGHT': float, 'SPEED': float, 'DISTANCE': float, 'PHASE_OF_FLT': object, 
-                        'DAMAGE': object, 'STR_RAD': int, 'DAM_RAD': int, 'STR_WINDSHLD': int, 
-                        'DAM_WINDSHLD': int, 'STR_NOSE': int, 'DAM_NOSE': int, 'STR_ENG1': int, 
-                        'DAM_ENG1': int, 'STR_ENG2': int, 'DAM_ENG2': int, 'STR_ENG3': int, 'DAM_ENG3': int, 
-                        'STR_ENG4': int, 'DAM_ENG4': int, 'INGESTED': int, 'STR_PROP': int, 'DAM_PROP': int, 
+                 dtype={'INCIDENT_DATE': object, 'ATYPE': object, 'OPERATOR': object, 'AC_CLASS': object, 
+                        'AC_MASS': float, 'NUM_ENGS': float, 'TYPE_ENG': object, 'AIRPORT': object, 
+                        'STATE': object, 'ENROUTE': object, 'HEIGHT': float, 'SPEED': float, 
+                        'DISTANCE': float, 'PHASE_OF_FLT': object, 'DAMAGE': object, 'STR_RAD': int, 
+                        'DAM_RAD': int, 'STR_WINDSHLD': int, 'DAM_WINDSHLD': int, 'STR_NOSE': int, 
+                        'DAM_NOSE': int, 'STR_ENG1': int, 'DAM_ENG1': int, 'STR_ENG2': int, 
+                        'DAM_ENG2': int, 'STR_ENG3': int, 'DAM_ENG3': int, 'STR_ENG4': int, 
+                        'DAM_ENG4': int, 'INGESTED': int, 'STR_PROP': int, 'DAM_PROP': int, 
                         'STR_WING_ROT': int, 'DAM_WING_ROT': int, 'STR_FUSE': int, 'DAM_FUSE': int, 
                         'STR_LG': int, 'DAM_LG': int, 'STR_TAIL': int, 'DAM_TAIL': int, 'STR_LGHTS': int,
                         'DAM_LGHTS': int, 'STR_OTHER': int, 'DAM_OTHER': int, 'EFFECT': object, 
@@ -29,11 +29,14 @@ df = pd.read_csv('wildlife-collisions-Modified.csv',
 
 df = df.set_index('INCIDENT_DATE')
 
-'''dont delete was used for deciding how to fill nan values
-test = df['WARNED']
-#No ATYPE EMA AIRPORT STATE
-#Maybe remove BIRDS_SEEN WARNED
-#Maybe AMA PHASE_OF_FLT SKY
+'''#dont delete was used for deciding how to fill nan values
+test = df['SKY']
+
+#AIRPORT contains also from other contries and that could explain big part of states missing but not all
+#Maybe remove column- BIRDS_SEEN WARNED
+#Maybe remove row- States
+#Maybe use mode- PHASE_OF_FLT SKY
+
 print(test.value_counts())
 
 print(test.isnull().sum())
@@ -64,9 +67,8 @@ df = df.drop(['STATE'], axis=1)
 df = df.rename(columns={'ENROUTE': 'STATE'})
 
 #Fills nan values with value
-df['OPERATOR'].fillna('Unknown', inplace=True)
-df['NR_INJURIES'].fillna(0, inplace=True)
-df['NR_FATALITIES'].fillna(0, inplace=True)
+df[['OPERATOR', 'AIRPORT', 'ATYPE']] = df[['OPERATOR', 'AIRPORT', 'ATYPE']].fillna('Unknown')
+df[['NR_INJURIES', 'NR_FATALITIES']] = df[['NR_INJURIES', 'NR_FATALITIES']].fillna(0)
 
 #Fills nan values using most popular
 df['SIZE'].fillna(df['SIZE'].value_counts().idxmax(), inplace=True)

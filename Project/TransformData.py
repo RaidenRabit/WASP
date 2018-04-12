@@ -105,7 +105,7 @@ removed:
     REPORTED_TITLE- always empty
 '''
 #Information here could be used later if needed
-df = df.drop(['OPID', 'AMO', 'EMO', 'ENG_1_POS', 'ENG_2_POS', 'ENG_3_POS', 'ENG_4_POS',
+df = df.drop(['OPID', 'AMA', 'AMO','EMA', 'EMO', 'ENG_1_POS', 'ENG_2_POS', 'ENG_3_POS', 'ENG_4_POS',
               'REMAINS_COLLECTED', 'REMAINS_SENT', 'AIRPORT_ID', 'FAAREGION', 'RUNWAY', 
               'LOCATION', 'OTHER_SPECIFY', 'EFFECT_OTHER', 'SPECIES_ID', 'REMARKS', 
               'COST_REPAIRS_INFL_ADJ', 'COST_OTHER_INFL_ADJ', 'REPORTED_DATE', 'SOURCE', 
@@ -113,7 +113,9 @@ df = df.drop(['OPID', 'AMO', 'EMO', 'ENG_1_POS', 'ENG_2_POS', 'ENG_3_POS', 'ENG_
 '''
 removed:
     OPID- Airline operator code
+    AMA- International Civil Aviation Organization code for Aircraft Make
     AMO- International Civil Aviation Organization code for Aircraft Model 
+    EMA- Engine Make Code
     EMO- Engine Model Code
     ENG_1-4_POS- Where engine is mounted  on aircraft
     REMAINS_COLLECTED- Indicates if bird or wildlife remains were found and collected
