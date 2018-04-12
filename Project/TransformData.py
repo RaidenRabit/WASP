@@ -1,5 +1,5 @@
 '''
-Files porpuse is to fix values and remove not needed information
+    Files porpuse is to fix values and remove not needed information
 '''
 
 import pandas as pd
@@ -31,21 +31,19 @@ df = pd.read_csv('wildlife-collisions.csv',
                         'NR_FATALITIES': float, 'LUPDATE': object, 'TRANSFER': int, 'INDICATED_DAMAGE': int})
 
 #replaces bad values with nan
-df = df.replace(r'', np.nan, regex=True)
-df = df.replace(r'UNKNOWN', np.nan, regex=True)
-df = df.replace(r'UNK', np.nan, regex=True)
-df = df.replace(r'CHANGE CODE', np.nan, regex=True)
-df = df.replace(r'ZZZZ', np.nan, regex=True)
+df = df.replace('', np.nan, regex=True)
+df = df.replace('UNKNOWN', np.nan, regex=True)
+df = df.replace('[Uu]nknown', np.nan, regex=True)
+df = df.replace('UNK', np.nan, regex=True)
+df = df.replace('CHANGE CODE', np.nan, regex=True)
+df = df.replace('ZZZZ', np.nan, regex=True)
 
-#replaces names so they represent Airline operator code
+#replaces or add names to deal with wrong data
 df.loc[df['OPID'] == "ASY", "OPERATOR"] = "Royal Australian Air Force"
 df.loc[df['OPID'] == "FDY", "OPERATOR"] = "Sun Air International"
 df.loc[df['OPID'] == "LTD", "OPERATOR"] = "Executive Express Aviation/JA Air Charter"
 df.loc[df['OPID'] == "SOI", "OPERATOR"] = "Southern Aviation"
 df.loc[df['OPID'] == "B-717IT", "OPERATOR"] = np.nan
-#df.reset_index(drop=False) dont delete
-
-#fix airport id and name
 df.loc[df['AIRPORT_ID'] == "SPANISH PEAKS AIRFIELD", "AIRPORT"] = "SPANISH PEAKS AIRFIELD"
 df['AIRPORT_ID'].replace('SPANISH PEAKS AIRFIELD', "4V1")
 df.loc[df['AIRPORT_ID'] == "KLUK", "AIRPORT"] = "CINCINNATI MUNICIPAL"
@@ -66,16 +64,13 @@ df['SKY'] = df['SKY'].str.replace(r'N[Oo] C[Ll]ouds?s?', "No Clouds")
 df['PRECIP'] = df['PRECIP'].replace('NoNe', "None")
 df['EFFECT'] = df['EFFECT'].replace('NONE', "None")
 df['PHASE_OF_FLT'] = df['PHASE_OF_FLT'].replace('take-off run', "Take-off run")
-df['PHASE_OF_FLT'] = df['PHASE_OF_FLT'].str.replace(r'[Ll]anding roll', "Landing roll")
-df['PHASE_OF_FLT'] = df['PHASE_OF_FLT'].replace('unknown', "Unknown")
+df['PHASE_OF_FLT'] = df['PHASE_OF_FLT'].str.replace('landing roll', "Landing roll")
 df['PHASE_OF_FLT'] = df['PHASE_OF_FLT'].replace('approach', "Approach")
 df['PHASE_OF_FLT'] = df['PHASE_OF_FLT'].replace('climb', "Climb")
 df['PHASE_OF_FLT'] = df['PHASE_OF_FLT'].replace('descent', "Descent")
 
 #Converts object to datetime
 df['INCIDENT_DATE'] = pd.to_datetime(df['INCIDENT_DATE'])
-'''df['REPORTED_DATE'] = pd.to_datetime(df['REPORTED_DATE'], errors='coerce')
-df['LUPDATE'] = pd.to_datetime(df['LUPDATE'], errors='coerce')'''
 
 #drop nan rows in INCIDENT_DATE
 df.dropna(subset=['INCIDENT_DATE'], inplace=True)
@@ -94,12 +89,10 @@ df = df.drop(['TIME_OF_DAY'], axis=1)
 #drops not needed columns:
 #Information here is compleatly useless
 df = df.drop(['INDEX_NR', 'REG', 'FLT', 'INCIDENT_MONTH', 'INCIDENT_YEAR', 'COMMENTS', 
-              'TRANSFER', 'COST_REPAIRS_INFL_ADJ', 'COST_OTHER_INFL_ADJ', 
-              'REPORTED_NAME', 'REPORTED_TITLE'], axis=1)
+              'TRANSFER', 'LUPDATE', 'REPORTED_NAME', 'REPORTED_TITLE'], axis=1)
 
 '''
 removed:
-    Unnamed: 0- unnecessary field
     INDEX_NR- Individual record number
     REG- Aircraft registration
     FLT- Flight number
@@ -107,8 +100,7 @@ removed:
     INCIDENT_YEAR- already provided in INCIDENT_DATE
     COMMENTS- As entered by database manager. Can include name of aircraft owner, types of reports received, updates, etc.
     TRANSFER- Unused field at this time
-    COST_REPAIRS_INFL_ADJ- Costs adjusted for inflation (can be self calculated)
-    COST_OTHER_INFL_ADJ- Other cost adjusted for inflation (can be self calculated)
+    LUPDATE- Last time record was updated
     REPORTED_NAME- always empty
     REPORTED_TITLE- always empty
 '''
@@ -116,7 +108,8 @@ removed:
 df = df.drop(['OPID', 'AMO', 'EMO', 'ENG_1_POS', 'ENG_2_POS', 'ENG_3_POS', 'ENG_4_POS',
               'REMAINS_COLLECTED', 'REMAINS_SENT', 'AIRPORT_ID', 'FAAREGION', 'RUNWAY', 
               'LOCATION', 'OTHER_SPECIFY', 'EFFECT_OTHER', 'SPECIES_ID', 'REMARKS', 
-              'REPORTED_DATE', 'SOURCE', 'PERSON', 'LUPDATE'], axis=1)
+              'COST_REPAIRS_INFL_ADJ', 'COST_OTHER_INFL_ADJ', 'REPORTED_DATE', 'SOURCE', 
+              'PERSON'], axis=1)
 '''
 removed:
     OPID- Airline operator code
@@ -133,10 +126,11 @@ removed:
     EFFECT_OTHER- Effect on flight other than those listed on the form
     SPECIES_ID- International Civil Aviation Organization code for type of bird or other wildlife
     REMARKS- Most of remarks are from the form but some are data entry notes and are usually in parentheses.
+    COST_REPAIRS_INFL_ADJ- Costs adjusted for inflation (can be self calculated)
+    COST_OTHER_INFL_ADJ- Other cost adjusted for inflation (can be self calculated)
     REPORTED_DATE- Date report was written
     SOURCE- Type of report. Note: for multiple types of reports this will be indicated as Multiple.  See "Comments" field for details
     PERSON- Only one selection allowed. For multiple reports, see field "Reported Title"
-    LUPDATE- Last time record was updated
 '''
 
 #Sorts values based on date and sets INCIDENT_DATE as index

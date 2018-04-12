@@ -1,5 +1,5 @@
 '''
-Data in this file is being finalized by dealing with nan values
+    Data in this file is being finalized by dealing with nan values
 '''
 
 import pandas as pd
@@ -29,7 +29,7 @@ df = pd.read_csv('wildlife-collisions-Modified.csv',
 
 df = df.set_index('INCIDENT_DATE')
 
-'''dont delete
+'''dont delete was used for deciding how to fill nan values
 test = df['WARNED']
 #No ATYPE EMA AIRPORT STATE
 #Maybe remove BIRDS_SEEN WARNED
@@ -78,55 +78,24 @@ df['DAMAGE'].fillna(df['DAMAGE'].value_counts().idxmax(), inplace=True)
 df['AC_CLASS'].fillna(df['AC_CLASS'].value_counts().idxmax(), inplace=True)
 df['TYPE_ENG'].fillna(df['TYPE_ENG'].value_counts().idxmax(), inplace=True)
 
-###########################################################################################
-#Used only if outliners have small or no influence
-change_mean = df[['SPEED']] #Average
+def fillNaNValues(columns, strategy):
+    change = df[columns]#Columns to change
+    
+    impute = Imputer(missing_values='NaN',#Change NaN values
+                   strategy=strategy,#Use established strategy
+                   axis=0)#Along the rows
+    
+    imputed = impute.fit_transform(change)# Use imputation model to get values
+    
+    imputed = pd.DataFrame(imputed,# Remake the DataFrame
+                           index=change.index,#Get rows
+                           columns=change.columns)#Get columns
+    
+    df[columns] = imputed[columns]#Replaces existing columns and all information in them with new
 
-mean = Imputer(missing_values='NaN',  # Create imputation model
-              strategy='mean',       # Use mean imputation
-              axis=0)                # Impute by column
-
-imputed_mean = mean.fit_transform(change_mean) # Use imputation model to get values
-
-imputed_mean = pd.DataFrame(imputed_mean,    # Remake the DataFrame
-                           index=change_mean.index,
-                           columns=change_mean.columns)
-
-df[['SPEED']] = imputed_mean[['SPEED']]
-
-###########################################################################################
-#When clear coaralation can be seen
-change_most_frequent = df[['AC_MASS', 'NUM_ENGS']] #Variable with highest frequency
-
-most_frequent = Imputer(missing_values='NaN',
-              strategy='most_frequent',
-              axis=0)
-
-imputed_most_frequent = most_frequent.fit_transform(change_most_frequent)
-
-imputed_most_frequent = pd.DataFrame(imputed_most_frequent,
-                           index=change_most_frequent.index,
-                           columns=change_most_frequent.columns)
-
-df[['AC_MASS', 'NUM_ENGS']] = imputed_most_frequent[['AC_MASS', 'NUM_ENGS']]
-
-###########################################################################################
-#Tends to resist the effects of skewness and outliers
-change_median = df[['HEIGHT', 'DISTANCE', 'AOS', 'COST_OTHER', 'COST_REPAIRS']] #Middle number of set
-
-median = Imputer(missing_values='NaN',
-              strategy='median',
-              axis=0)
-
-imputed_median = median.fit_transform(change_median)
-
-imputed_median = pd.DataFrame(imputed_median,
-                           index=change_median.index,
-                           columns=change_median.columns)
-
-df[['HEIGHT', 'DISTANCE', 'AOS', 'COST_OTHER', 'COST_REPAIRS']] = imputed_median[['HEIGHT', 'DISTANCE', 'AOS', 'COST_OTHER', 'COST_REPAIRS']]
-
-###########################################################################################
+fillNaNValues(['SPEED'], 'mean')#Used only if outliners have small or no influence
+fillNaNValues(['AC_MASS', 'NUM_ENGS'], 'most_frequent')#When clear correlation can be seen
+fillNaNValues(['HEIGHT', 'DISTANCE', 'AOS', 'COST_OTHER', 'COST_REPAIRS'], 'median')#To resist the effects of outliers
 
 print(df.isnull().sum())
 print(df.shape)
