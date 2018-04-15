@@ -109,6 +109,7 @@ def fillNaNValues(df, columns, strategy):
 def main():
     os.chdir(find('wildlife-collisions.csv')) #set working directory
     df=readFile()
+    df=fillNAwithValue(df)
     fillNaNValues(df, ['SPEED'], 'mean')#Used only if outliners have small or no influence
     fillNaNValues(df, ['AC_MASS', 'NUM_ENGS'], 'most_frequent')#When clear correlation can be seen
     fillNaNValues(df, ['HEIGHT', 'DISTANCE', 'AOS', 'COST_OTHER', 'COST_REPAIRS'], 'median')#To resist the effects of outliers
