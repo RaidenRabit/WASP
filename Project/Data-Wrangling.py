@@ -184,20 +184,7 @@ def normalizeIncidentDate(df): #fixes INCIDENT_DATE based on given info
     df['TIME'] = df['TIME'].astype(str).str.extract('(..:..)', expand=True)
     df['TIME'].fillna(df['TIME_OF_DAY'], inplace=True)
     df['TIME'] = df['TIME'].replace(np.nan, '0:00', regex=True)
-    df['INCIDENT_DATE'] = pd.to_datetime(df['INCIDENT_DATE'].apply(str)+' '+df['TIME'])
-    return df
-    
-def dropValues(df):
-    df = df.drop(['TIME'], axis=1)
-    df = df.drop(['TIME_OF_DAY'], axis=1)
-    df.dropna(subset=['INCIDENT_DATE'], inplace=True) #drop nan rows in INCIDENT_DATE
-    df = df.drop(['INDEX_NR', 'REG', 'FLT', 'INCIDENT_MONTH', 'INCIDENT_YEAR', 'COMMENTS',  #Information here is compleatly useless
-                  'TRANSFER', 'LUPDATE', 'REPORTED_NAME', 'REPORTED_TITLE'], axis=1)
-    df = df.drop(['OPID', 'AMO', 'EMO', 'ENG_1_POS', 'ENG_2_POS', 'ENG_3_POS', 'ENG_4_POS', #Information here could be used later if needed
-                 'REMAINS_COLLECTED', 'REMAINS_SENT', 'AIRPORT_ID', 'FAAREGION', 'RUNWAY', 
-                 'LOCATION', 'OTHER_SPECIFY', 'EFFECT_OTHER', 'SPECIES_ID', 'REMARKS', 
-                 'COST_REPAIRS_INFL_ADJ', 'COST_OTHER_INFL_ADJ', 'REPORTED_DATE', 'SOURCE', 
-                 'PERSON'], axis=1)
+    df['INCIDENT_DATE'] = pd.to_datetime(df['INCIDENT_DATE'].apply(np.str)+' '+df['TIME'], errors='coerce')
     return df
 
 def normalizeWrongValues(df):
@@ -228,6 +215,20 @@ def normalizeGrammar(df):
     df['PHASE_OF_FLT'] = df['PHASE_OF_FLT'].replace('approach', "Approach")
     df['PHASE_OF_FLT'] = df['PHASE_OF_FLT'].replace('climb', "Climb")
     df['PHASE_OF_FLT'] = df['PHASE_OF_FLT'].replace('descent', "Descent")
+    return df
+
+def dropValues(df):
+    df = df.drop(['TIME'], axis=1)
+    df = df.drop(['TIME_OF_DAY'], axis=1)
+    df.dropna(subset=['INCIDENT_DATE'], inplace=True) #drop nan rows in INCIDENT_DATE
+    df = df.drop(['REG', 'FLT', 'INCIDENT_MONTH', 'INCIDENT_YEAR', 'COMMENTS',  #Information here is compleatly useless
+                  'TRANSFER', 'LUPDATE', 'REPORTED_NAME', 'REPORTED_TITLE'], axis=1)
+    df = df.drop(['OPID', 'AMO', 'EMO', 'ENG_1_POS', 'ENG_2_POS', 'ENG_3_POS', 'ENG_4_POS', #Information here could be used later if needed
+                 'REMAINS_COLLECTED', 'REMAINS_SENT', 'AIRPORT_ID', 'FAAREGION', 'RUNWAY', 
+                 'LOCATION', 'OTHER_SPECIFY', 'EFFECT_OTHER', 'SPECIES_ID', 'REMARKS', 
+                 'COST_REPAIRS_INFL_ADJ', 'COST_OTHER_INFL_ADJ', 'REPORTED_DATE', 'SOURCE', 
+                 'PERSON'], axis=1)
+    return df
     
 
 def dataNormalizationMain(df):
@@ -238,6 +239,13 @@ def dataNormalizationMain(df):
     df=dropValues(df)
     return df
 ########################################## MAIN FUNCTION ####################################
+'''
+    NOTE: if you dont want to wait the entire ~30 sec to rerun the entire program, you can just "pickle" the df (save it's current state in a file)
+    using:
+        df.to_pickle(filename)
+    then you can load it by
+        df=pd.read_pickle(filename)
+'''
 def main():
     os.chdir(find('STRIKE_REPORTS (1990-1999).csv')) #set working directory
     print('Files Found')
@@ -259,10 +267,10 @@ def main():
     
     df = df.sort_values('INCIDENT_DATE')
     df = df.set_index('INCIDENT_DATE')
-    
     df.to_csv(path_or_buf='wildlife-collisions.csv', encoding = "utf-8")
     print('Data Saved to \'wildlife-collisions.csv\'')
     print('Done')
+    
     
 if __name__ == '__main__': #when program starts, start with main function
     main()

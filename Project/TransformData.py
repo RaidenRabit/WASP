@@ -149,6 +149,7 @@ def sortDf(df): #Sorts values based on date and sets INCIDENT_DATE as index
     return df
 
 ########################################## MAIN FUNCTION ####################################
+
 def main():
     os.chdir(find('wildlife-collisions.csv')) #set working directory
     df=readFiles()
@@ -161,6 +162,6 @@ def main():
     df=sortDf(df)
     df.to_csv(path_or_buf='wildlife-collisions-Modified.csv', encoding = "utf-8") #Writes to new file
     print('Done!')
-    
+
 if __name__ == '__main__': #when program starts, start with main function
     main()
