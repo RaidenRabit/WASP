@@ -11,12 +11,6 @@ import numpy as np
 from sklearn.preprocessing import Imputer
 pd.options.mode.chained_assignment = None  # default='warn'
 
-######################################## FIND FILES ##########################################
-def find(name): #finds needed files in pc
-    for root, dirs, files in os.walk('C:\\Users'):
-        if name in files:
-            return root
-            break
 
 ######################################## LOAD FILES ##########################################
 def loadFiles(): 
@@ -167,7 +161,6 @@ def handleNaNmain(df): #handling NAN values
     return df
 ########################################## DATA FORMATING ###################################
 def dataFormating(df):
-    df['WARNED'] = df['WARNED'].map({'Y': 1, 'N': 0, 'y': 1, 'n': 0}) #Converts object values to int
     df['INCIDENT_DATE'] = pd.to_datetime(df['INCIDENT_DATE']) #Converts object to datetime
     return df
 ########################################## DATA NORMALIZATION ####################################
@@ -200,6 +193,7 @@ def normalizeWrongValues(df):
     return df
 
 def normalizeGrammar(df):
+    df['WARNED'] = df['WARNED'].map({'Y': 1, 'N': 0, 'y': 1, 'n': 0}) #Converts object values to int
     df['DAMAGE'] = df['DAMAGE'].replace('M?', "?")
     df['SIZE'] = df['SIZE'].str.lower().replace(r'small', "Small")
     df['SIZE'] = df['SIZE'].str.lower().replace(r'medium', "Medium")
@@ -247,7 +241,7 @@ def dataNormalizationMain(df):
         df=pd.read_pickle(filename)
 '''
 def main():
-    os.chdir(find('STRIKE_REPORTS (1990-1999).csv')) #set working directory
+    os.chdir('dataset\\Extracted_dataset') #set working directory
     print('Files Found')
     
     df=loadFiles() #20-115; reading raw data and putting it into 1 single file
@@ -267,6 +261,7 @@ def main():
     
     df = df.sort_values('INCIDENT_DATE')
     df = df.set_index('INCIDENT_DATE')
+    print(df.dtypes)
     df.to_csv(path_or_buf='wildlife-collisions.csv', encoding = "utf-8")
     print('Data Saved to \'wildlife-collisions.csv\'')
     print('Done')
