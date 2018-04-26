@@ -71,10 +71,6 @@ def fillWithNa(df):
     return df
 
 def fillNaWithValues(df):
-    #fill nan with some coaralation
-    df.loc[df['PRECIP'] != "None", "SKY"].fillna("Overcast")
-    df.loc[df['SKY'] == "No Clouds", "PRECIP"].fillna("None")
-    
     #fill with specific values
     nanRepresenter = '-'
     df['NR_INJURIES'].fillna(0, inplace=True)
@@ -85,35 +81,40 @@ def fillNaWithValues(df):
     df['STATE'].fillna(nanRepresenter, inplace=True)
     df['AIRPORT'].fillna(nanRepresenter, inplace=True)
     
-    #Fills nan values using most popular
-    df['SIZE'].fillna(df['SIZE'].value_counts().idxmax(), inplace=True)
-    df['BIRDS_STRUCK'].fillna(df['BIRDS_STRUCK'].value_counts().idxmax(), inplace=True)
-    df['SPECIES'].fillna(df['SPECIES'].value_counts().idxmax(), inplace=True)
-    df['PRECIP'].fillna(df['PRECIP'].value_counts().idxmax(), inplace=True)
-    df['EFFECT'].fillna(df['EFFECT'].value_counts().idxmax(), inplace=True)
-    df['DAMAGE'].fillna(df['DAMAGE'].value_counts().idxmax(), inplace=True)
-    df['AC_CLASS'].fillna(df['AC_CLASS'].value_counts().idxmax(), inplace=True)
-    df['TYPE_ENG'].fillna(df['TYPE_ENG'].value_counts().idxmax(), inplace=True)
-    df['PHASE_OF_FLT'].fillna(df['PHASE_OF_FLT'].value_counts().idxmax(), inplace=True)
+    #Fills nan values using different strategies
+    #Used only if outliners have small or no influence (average):
+    df['SPEED'].fillna(df['SPEED'].mean(), inplace=True)
+    #When clear correlation can be seen (most common value also used as most_frequent):
+    #Nummerich values
+    df['AC_MASS'].fillna(df['AC_MASS'].mode()[0], inplace=True)
+    df['NUM_ENGS'].fillna(df['NUM_ENGS'].mode()[0], inplace=True)
+    #Object/categorical values
+    df['SIZE'].fillna(df['SIZE'].mode()[0], inplace=True)
+    df['BIRDS_STRUCK'].fillna(df['BIRDS_STRUCK'].mode()[0], inplace=True)
+    df['SPECIES'].fillna(df['SPECIES'].mode()[0], inplace=True)
+    df['PRECIP'].fillna(df['PRECIP'].mode()[0], inplace=True)
+    df['EFFECT'].fillna(df['EFFECT'].mode()[0], inplace=True)
+    df['DAMAGE'].fillna(df['DAMAGE'].mode()[0], inplace=True)
+    df['AC_CLASS'].fillna(df['AC_CLASS'].mode()[0], inplace=True)
+    df['TYPE_ENG'].fillna(df['TYPE_ENG'].mode()[0], inplace=True)
+    df['PHASE_OF_FLT'].fillna(df['PHASE_OF_FLT'].mode()[0], inplace=True)
+    #Used to resist the effects of outliers (value in the middle):
+    df['HEIGHT'].fillna(df['HEIGHT'].median(), inplace=True)
+    df['DISTANCE'].fillna(df['DISTANCE'].median(), inplace=True)
+    df['AOS'].fillna(df['AOS'].median(), inplace=True)
     
-    df=fillNaStrategicaly(df, ['SPEED'], 'mean')#Used only if outliners have small or no influence
-    df=fillNaStrategicaly(df, ['AC_MASS', 'NUM_ENGS'], 'most_frequent')#When clear correlation can be seen
-    df=fillNaStrategicaly(df, ['HEIGHT', 'DISTANCE', 'AOS', 'COST_REPAIRS_INFL_ADJ', 'COST_OTHER_INFL_ADJ'], 'median')#To resist the effects of outliers
+    #Fills nan values strategies based on groups
+    df=fillNaNBasedOnGroup('INDICATED_DAMAGE', ['COST_REPAIRS_INFL_ADJ', 'COST_OTHER_INFL_ADJ'], df, 'median')   
+    
+    #fill nan with some coaralation??????????????????????????????????
+    df.loc[df['PRECIP'] != "None", "SKY"].fillna("Overcast")
+    df.loc[df['SKY'] == "No Clouds", "PRECIP"].fillna("None")
     
     return df
 
-def fillNaStrategicaly(df, columns, strategy):
-    change = df[columns]#Columns to change
-    impute = Imputer(missing_values='NaN',#Change NaN values
-                   strategy=strategy,#Use established strategy
-                   axis=0)#Along the rows
-    imputed = impute.fit_transform(change)# Use imputation model to get values
-    imputed = pd.DataFrame(imputed,# Remake the DataFrame
-                           index=change.index,#Get rows
-                           columns=change.columns)#Get columns
-    df[columns] = imputed[columns]#Replaces existing columns and all information in them with new
+def fillNaNBasedOnGroup(groupedBy, column, df, strategy):
+    df[column] = df[column].fillna(df.groupby(groupedBy)[column].transform(strategy))
     return df
-    
     
 def handleNaN(df): #handling NAN values
     df=fillWithNa(df) #fill empty and wrong data with na values
@@ -246,7 +247,7 @@ def main():
     df = df.set_index('INCIDENT_DATE')
     
     #if indicate damage is false than price 0 or lower
-    #if rain than has clouds
+    #if rain than has clouds (maybe use mode)
     #coaralation between strike all false and no known aircraft type?
     
     #removes all info out side of usa and could deal with nan values better maybe drop columns
