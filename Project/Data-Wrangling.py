@@ -54,65 +54,71 @@ def loadFiles():
     
     #putting it into 1 single file
     frames = [df1990_1999, df2000_2009, df2010_Current, dfMilitary]
-    df = pd.concat(frames)    
+    df = pd.concat(frames)
+    
     return df
 
 ######################################## HANDLE NaN #########################################
     
 def fillWithNa(df):
-    df = df.replace('', np.nan, regex=True)
-    df = df.replace('UNKNOWN', np.nan, regex=True)
-    df = df.replace('[Uu]nknown', np.nan, regex=True)
-    df = df.replace('UNK', np.nan, regex=True)
-    df = df.replace('CHANGE CODE', np.nan, regex=True)
-    df = df.replace('ZZZZ', np.nan, regex=True)
+    df = df.replace({'' : np.nan, 'UNKNOWN': np.nan, '[Uu]nknown': np.nan, 
+                     'UNK': np.nan, 'CHANGE CODE': np.nan, 'ZZZZ': np.nan}, regex=True)
     df['OPID'] = df['OPID'].replace('B-717IT', np.nan, regex=True)
     
     return df
 
 def fillNaWithValues(df):
     #fill with specific values
-    nanRepresenter = '-'
-    df['NR_INJURIES'].fillna(0, inplace=True)
-    df['NR_FATALITIES'].fillna(0, inplace=True)
-    df['SKY'].fillna('Some Clouds', inplace=True)
-    df['ATYPE'].fillna(nanRepresenter, inplace=True)
-    df['OPERATOR'].fillna(nanRepresenter, inplace=True)
-    df['STATE'].fillna(nanRepresenter, inplace=True)
-    df['AIRPORT'].fillna(nanRepresenter, inplace=True)
+    df[['NR_INJURIES', 'NR_FATALITIES']] = df[['NR_INJURIES', 'NR_FATALITIES']].fillna(0)
+    
+    #????????????????????????????????/???????????????????????find better way of filling them than -
+    df[['ATYPE', 'OPERATOR', 'STATE', 'AIRPORT']] = df[['ATYPE', 'OPERATOR', 'STATE', 'AIRPORT']].fillna('-')
     
     #Fills nan values using different strategies
-    #Used only if outliners have small or no influence (average):
+        #Used only if outliners have small or no influence (average):
     df['SPEED'].fillna(df['SPEED'].mean(), inplace=True)
-    #When clear correlation can be seen (most common value also used as most_frequent):
-    #Nummerich values
+        #When clear correlation can be seen (most common value also used as most_frequent):
+            #Nummerich values
     df['AC_MASS'].fillna(df['AC_MASS'].mode()[0], inplace=True)
     df['NUM_ENGS'].fillna(df['NUM_ENGS'].mode()[0], inplace=True)
-    #Object/categorical values
+            #Object/categorical values
     df['SIZE'].fillna(df['SIZE'].mode()[0], inplace=True)
     df['BIRDS_STRUCK'].fillna(df['BIRDS_STRUCK'].mode()[0], inplace=True)
     df['SPECIES'].fillna(df['SPECIES'].mode()[0], inplace=True)
-    df['PRECIP'].fillna(df['PRECIP'].mode()[0], inplace=True)
+    df['SKY'].fillna(df['SKY'].mode()[0], inplace=True)
     df['EFFECT'].fillna(df['EFFECT'].mode()[0], inplace=True)
     df['DAMAGE'].fillna(df['DAMAGE'].mode()[0], inplace=True)
     df['AC_CLASS'].fillna(df['AC_CLASS'].mode()[0], inplace=True)
     df['TYPE_ENG'].fillna(df['TYPE_ENG'].mode()[0], inplace=True)
     df['PHASE_OF_FLT'].fillna(df['PHASE_OF_FLT'].mode()[0], inplace=True)
-    #Used to resist the effects of outliers (value in the middle):
+        #Used to resist the effects of outliers (value in the middle):
     df['HEIGHT'].fillna(df['HEIGHT'].median(), inplace=True)
     df['DISTANCE'].fillna(df['DISTANCE'].median(), inplace=True)
     df['AOS'].fillna(df['AOS'].median(), inplace=True)
     
     #Fills nan values strategies based on groups
-    df=fillNaNBasedOnGroup('INDICATED_DAMAGE', ['COST_REPAIRS_INFL_ADJ', 'COST_OTHER_INFL_ADJ'], df, 'median')   
-    
-    #fill nan with some coaralation??????????????????????????????????
-    df.loc[df['PRECIP'] != "None", "SKY"].fillna("Overcast")
-    df.loc[df['SKY'] == "No Clouds", "PRECIP"].fillna("None")
+        #All strategies (except mode)
+    df = fillNaNBasedOnGroup('INDICATED_DAMAGE', ['COST_REPAIRS_INFL_ADJ', 'COST_OTHER_INFL_ADJ'], df, 'median')
+        #mode
+    df = fillNaNInGroups(df, 'SKY', 'PRECIP')
     
     return df
 
-def fillNaNBasedOnGroup(groupedBy, column, df, strategy):
+def fillNaNInGroups(df, groupedBy, filled):#fills nan values base on theyr group, supports only mode
+    def top_value_count(x):
+        return x.value_counts()
+
+    gb = df[[groupedBy, filled]].groupby([groupedBy])[filled]
+    df_top_freq = gb.apply(top_value_count).reset_index()
+    df_top_freq = df_top_freq.sort_values(by=filled, ascending=False)
+    df_top_freq = df_top_freq.drop_duplicates([groupedBy], keep='first')
+    
+    for i in df_top_freq.iterrows():
+        df.loc[df[groupedBy] == i[1][0], filled] = i[1][1]
+        
+    return df
+
+def fillNaNBasedOnGroup(groupedBy, column, df, strategy):#fills nan values base on theyr group, but doesnt support mode
     df[column] = df[column].fillna(df.groupby(groupedBy)[column].transform(strategy))
     return df
     
@@ -146,50 +152,35 @@ def normalizeIncidentDate(df): #fixes INCIDENT_DATE based on given info
     return df
 
 def normalizeWrongValues(df):
-    df.loc[df['OPID'] == "ASY", "OPERATOR"] = "Royal Australian Air Force"
-    df.loc[df['OPID'] == "FDY", "OPERATOR"] = "Sun Air International"
-    df.loc[df['OPID'] == "LTD", "OPERATOR"] = "Executive Express Aviation/JA Air Charter"
-    df.loc[df['OPID'] == "SOI", "OPERATOR"] = "Southern Aviation"
+    df.loc[df['OPID'] == 'ASY', 'OPERATOR'] = 'Royal Australian Air Force'
+    df.loc[df['OPID'] == 'FDY', 'OPERATOR'] = 'Sun Air International'
+    df.loc[df['OPID'] == 'LTD', 'OPERATOR'] = 'Executive Express Aviation/JA Air Charter'
+    df.loc[df['OPID'] == 'SOI', 'OPERATOR'] = 'Southern Aviation'
     
-    df.loc[df['AIRPORT_ID'] == "SPANISH PEAKS AIRFIELD", "AIRPORT"] = "SPANISH PEAKS AIRFIELD"
-    df['AIRPORT_ID'].replace('SPANISH PEAKS AIRFIELD', "4V1")
-    df.loc[df['AIRPORT_ID'] == "KLUK", "AIRPORT"] = "CINCINNATI MUNICIPAL"
-    df.loc[df['AIRPORT_ID'] == "KDKK", "AIRPORT"] = "CHAUTAUQUA-DUNKIRK"
+    df.loc[df['AIRPORT_ID'] == 'SPANISH PEAKS AIRFIELD', 'AIRPORT'] = 'SPANISH PEAKS AIRFIELD'
+    df['AIRPORT_ID'].replace('SPANISH PEAKS AIRFIELD', '4V1')
+    df.loc[df['AIRPORT_ID'] == 'KLUK', 'AIRPORT'] = 'CINCINNATI MUNICIPAL'
+    df.loc[df['AIRPORT_ID'] == 'KDKK', 'AIRPORT'] = 'CHAUTAUQUA-DUNKIRK'
     
     return df
 
 def normalizeGrammar(df):
     df['WARNED'] = df['WARNED'].map({'Y': 1, 'N': 0, 'y': 1, 'n': 0}) #Converts object values to int
-    '''
-    df['AC_CLASS'] = df['AC_CLASS'].map({'A': 'Airplane', 'B': 'Helicopter', 'C': 'Glider', 
-                                          'D': 'Balloon', 'F': 'Dirigible', 'I': 'Gyroplane', 
-                                          'J': 'Ultralight', 'Y': 'Other', 'Z': 'Unknown'})#Aircrafts class
-        
-    df['AC_MASS'] = df['AC_MASS'].map({1: '2,250 kg or less', 2: '2251-5700 kg', 
-                                          3: '5,701-27,000 kg', 4: '27,001-272,000 kg',
-                                          5: 'above 272,000 kg'})#Mass of aircraft
     
-    df['TYPE_ENG'] = df['TYPE_ENG'].map({'A': 'Reciprocating engine (piston)', 'B': 'Turbojet', 
-                                          'C': 'Turboprop', 'D': 'Turbofan', 'E': 'None (glider)',
-                                          'F': 'Turboshaft (helicopter)', 'Y': 'Other'})#Type of power
-    
-    df['DAMAGE'] = df['DAMAGE'].map({'M': 'Minor', 'M?': 'Uncertain level', 
-                                          'S': 'Substantial', 'D': 'Destroyed'})#Type of damage
-    '''
-    df['SIZE'] = df['SIZE'].str.lower().replace(r'small', "Small")
-    df['SIZE'] = df['SIZE'].str.lower().replace(r'medium', "Medium")
-    df['SIZE'] = df['SIZE'].str.lower().replace(r'large', "Large")
+    df['SIZE'] = df['SIZE'].str.lower().replace(r'small', 'Small')
+    df['SIZE'] = df['SIZE'].str.lower().replace(r'medium', 'Medium')
+    df['SIZE'] = df['SIZE'].str.lower().replace(r'large', 'Large')
     df['SPECIES'] = (df['SPECIES'].str.lower()).str.title()
     df['EFFECT'] = (df['EFFECT'].str.lower()).str.title()
-    df['SKY'] = df['SKY'].str.replace(r'S[Oo]me Clouds?', "Some Clouds")
-    df['SKY'] = df['SKY'].str.replace(r'N[Oo] C[Ll]ouds?s?', "No Clouds")
-    df['PRECIP'] = df['PRECIP'].replace('NoNe', "None")
-    df['EFFECT'] = df['EFFECT'].replace('NONE', "None")
-    df['PHASE_OF_FLT'] = df['PHASE_OF_FLT'].replace('take-off run', "Take-off run")
-    df['PHASE_OF_FLT'] = df['PHASE_OF_FLT'].str.replace('landing roll', "Landing roll")
-    df['PHASE_OF_FLT'] = df['PHASE_OF_FLT'].replace('approach', "Approach")
-    df['PHASE_OF_FLT'] = df['PHASE_OF_FLT'].replace('climb', "Climb")
-    df['PHASE_OF_FLT'] = df['PHASE_OF_FLT'].replace('descent', "Descent")
+    df['SKY'] = df['SKY'].str.replace(r'S[Oo]me Clouds?', 'Some Clouds')
+    df['SKY'] = df['SKY'].str.replace(r'N[Oo] C[Ll]ouds?s?', 'No Clouds')
+    df['PRECIP'] = df['PRECIP'].replace('NoNe', 'None')
+    df['EFFECT'] = df['EFFECT'].replace('NONE', 'None')
+    df['PHASE_OF_FLT'] = df['PHASE_OF_FLT'].replace('take-off run', 'Take-off run')
+    df['PHASE_OF_FLT'] = df['PHASE_OF_FLT'].str.replace('landing roll', 'Landing roll')
+    df['PHASE_OF_FLT'] = df['PHASE_OF_FLT'].replace('approach', 'Approach')
+    df['PHASE_OF_FLT'] = df['PHASE_OF_FLT'].replace('climb', 'Climb')
+    df['PHASE_OF_FLT'] = df['PHASE_OF_FLT'].replace('descent', 'Descent')
     return df
 
 def dropValues(df):
@@ -246,11 +237,7 @@ def main():
     df = df.sort_values('INCIDENT_DATE')
     df = df.set_index('INCIDENT_DATE')
     
-    #if indicate damage is false than price 0 or lower
-    #if rain than has clouds (maybe use mode)
-    #coaralation between strike all false and no known aircraft type?
-    
-    #removes all info out side of usa and could deal with nan values better maybe drop columns
+    #remove all info out side of usa and could deal with nan values better maybe drop columns
     print(df.isnull().sum())
     '''
     test = df['DAMAGE']
@@ -261,7 +248,7 @@ def main():
     df.to_csv('Modified_dataset/wildlife-collisions.csv', encoding = "utf-8")
     
     print('Done')
-    
+
     
 if __name__ == '__main__': #when program starts, start with main function
     main()
