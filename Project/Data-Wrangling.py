@@ -68,13 +68,12 @@ def fillWithNa(df):
     return df
 
 def fillNaWithValues(df):
-    #fill with specific values
-    df[['NR_INJURIES', 'NR_FATALITIES']] = df[['NR_INJURIES', 'NR_FATALITIES']].fillna(0)
-    
-    #????????????????????????????????/???????????????????????find better way of filling them than -
+    #???find better way of filling them -
     df[['ATYPE', 'OPERATOR', 'STATE', 'AIRPORT']] = df[['ATYPE', 'OPERATOR', 'STATE', 'AIRPORT']].fillna('-')
     
-    #Fills nan values using different strategies
+    #???(check if more dont have to be grouped) Fills nan values using different strategies
+        #fill with specific values
+    df[['NR_INJURIES', 'NR_FATALITIES']] = df[['NR_INJURIES', 'NR_FATALITIES']].fillna(0)
         #Used only if outliners have small or no influence (average):
     df['SPEED'].fillna(df['SPEED'].mean(), inplace=True)
         #When clear correlation can be seen (most common value also used as most_frequent):
@@ -100,11 +99,11 @@ def fillNaWithValues(df):
         #All strategies (except mode)
     df = fillNaNBasedOnGroup('INDICATED_DAMAGE', ['COST_REPAIRS_INFL_ADJ', 'COST_OTHER_INFL_ADJ'], df, 'median')
         #mode
-    df = fillNaNInGroups(df, 'SKY', 'PRECIP')
+    df = fillNaNwithGroupsMode(df, 'SKY', 'PRECIP')
     
     return df
 
-def fillNaNInGroups(df, groupedBy, filled):#fills nan values base on theyr group, supports only mode
+def fillNaNwithGroupsMode(df, groupedBy, filled):#fills nan values base on theyr group, supports only mode
     def top_value_count(x):
         return x.value_counts()
 
