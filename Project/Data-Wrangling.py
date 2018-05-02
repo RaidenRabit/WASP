@@ -7,7 +7,6 @@ import os
 import sys
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import Imputer
 pd.options.mode.chained_assignment = None  # default='warn'
 
 
@@ -68,12 +67,10 @@ def fillWithNa(df):
     return df
 
 def fillNaWithValues(df):
-    #???find better way of filling them -
-    df[['ATYPE', 'OPERATOR', 'STATE', 'AIRPORT']] = df[['ATYPE', 'OPERATOR', 'STATE', 'AIRPORT']].fillna('-')
-    
-    #???(check if more dont have to be grouped) Fills nan values using different strategies
+    #Fills nan values using different strategies
         #fill with specific values
     df[['NR_INJURIES', 'NR_FATALITIES']] = df[['NR_INJURIES', 'NR_FATALITIES']].fillna(0)
+    df['OPERATOR'].fillna('Unknown', inplace=True)
         #Used only if outliners have small or no influence (average):
     df['SPEED'].fillna(df['SPEED'].mean(), inplace=True)
         #When clear correlation can be seen (most common value also used as most_frequent):
@@ -100,6 +97,12 @@ def fillNaWithValues(df):
     df = fillNaNBasedOnGroup('INDICATED_DAMAGE', ['COST_REPAIRS_INFL_ADJ', 'COST_OTHER_INFL_ADJ'], df, 'median')
         #mode
     df = fillNaNwithGroupsMode(df, 'SKY', 'PRECIP')
+    df = fillNaNwithGroupsMode(df, 'AC_CLASS', 'ATYPE')
+    
+    df['ENROUTE'].fillna(df['STATE'], inplace=True)
+    df = df.drop(['STATE'], axis=1)
+    df = df.rename(columns={'ENROUTE': 'STATE'})
+    df = fillNaNwithGroupsMode(df, 'STATE', 'AIRPORT')
     
     return df
 
@@ -113,7 +116,7 @@ def fillNaNwithGroupsMode(df, groupedBy, filled):#fills nan values base on theyr
     df_top_freq = df_top_freq.drop_duplicates([groupedBy], keep='first')
     
     for i in df_top_freq.iterrows():
-        df.loc[df[groupedBy] == i[1][0], filled] = i[1][1]
+        df.loc[df[groupedBy] == i[1][0], filled] = df.loc[df[groupedBy] == i[1][0], filled].fillna(i[1][1])
         
     return df
 
@@ -132,14 +135,6 @@ def dataFormating(df):
     return df
 
 ########################################## DATA NORMALIZATION ####################################
-def mergeFields(df): #Merge these fields to show state where the incident happened
-    #Location?
-    df['ENROUTE'].fillna(df['STATE'], inplace=True)
-    df = df.drop(['STATE'], axis=1)
-    df = df.rename(columns={'ENROUTE': 'STATE'})
-    
-    return df
-
 def normalizeIncidentDate(df): #fixes INCIDENT_DATE based on given info
     times = {'Night': '23:59', 'Dusk': '18:00', 'Day': '12:00', 'Dawn': '6:00'}
     df['TIME_OF_DAY'] = df['TIME_OF_DAY'].apply(times.get)
@@ -183,8 +178,7 @@ def normalizeGrammar(df):
     return df
 
 def dropValues(df):
-    df = df.drop(['TIME'], axis=1)
-    df = df.drop(['TIME_OF_DAY'], axis=1)
+    df = df.drop(['TIME_OF_DAY', 'TIME'], axis=1)
     df.dropna(subset=['INCIDENT_DATE'], inplace=True) #drop nan rows in INCIDENT_DATE
     df = df.drop(['INDEX_NR', 'REG', 'FLT', 'INCIDENT_MONTH', 'INCIDENT_YEAR', 'COMMENTS',  #Information here is compleatly useless
                   'TRANSFER', 'LUPDATE', 'REPORTED_NAME', 'REPORTED_TITLE'], axis=1)
@@ -194,12 +188,19 @@ def dropValues(df):
                  'COST_REPAIRS', 'COST_OTHER', 'REPORTED_DATE', 'SOURCE', 'WARNED', 'BIRDS_SEEN',
                  'PERSON', 'DAMAGE'], axis=1)
     #WARNED,BIRDS_SEEN,DAMAGE- usefull but contains too litle info
+    
+    states=['AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 
+       'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD',
+       'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
+       'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
+       'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY', #States till here
+       'DC', #Federal district till here
+       'PR', 'VI', 'PI']#Inhabited territories till here
+    df = df[df['STATE'].isin(states)]#drops all from outside USA
     return df
     
 
 def dataNormalization(df):
-    df=mergeFields(df)
-    sys.stdout.write('.')
     df=normalizeIncidentDate(df)
     sys.stdout.write('.')
     df=normalizeWrongValues(df)
@@ -238,7 +239,9 @@ def main():
     
     #remove all info out side of usa and could deal with nan values better maybe drop columns
     print(df.isnull().sum())
+    
     '''
+    #used to determin how to fill in nan values
     test = df['DAMAGE']
     print(test.value_counts())
     print(test.isnull().sum())
