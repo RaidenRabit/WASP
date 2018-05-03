@@ -12,8 +12,8 @@ pd.options.mode.chained_assignment = None  # default='warn'
 
 ######################################## LOAD FILES ##########################################
 def loadFiles(): 
-    location = "Extracted_dataset/"
-    encoding = "ISO-8859-1"
+    location = 'Extracted_dataset/'
+    encoding = 'ISO-8859-1'
     types = {'INDEX_NR': int, 'OPID': object, 'OPERATOR': object, 'ATYPE': object, 'AMA': object,
                             'AMO': object, 'EMA': object, 'EMO': object, 'AC_CLASS': object, 'AC_MASS': float, 
                             'NUM_ENGS': float, 'TYPE_ENG': object, 'ENG_1_POS': object, 'ENG_2_POS': float, 'ENG_3_POS': object, 
@@ -92,9 +92,11 @@ def fillNaWithValues(df):
     df['DISTANCE'].fillna(df['DISTANCE'].median(), inplace=True)
     df['AOS'].fillna(df['AOS'].median(), inplace=True)
     
+    df['COSTS'] = df['COST_REPAIRS_INFL_ADJ'] + df['COST_OTHER_INFL_ADJ']
+    
     #Fills nan values strategies based on groups
         #All strategies (except mode)
-    df = fillNaNBasedOnGroup('INDICATED_DAMAGE', ['COST_REPAIRS_INFL_ADJ', 'COST_OTHER_INFL_ADJ'], df, 'median')
+    df = fillNaNBasedOnGroup('INDICATED_DAMAGE', 'COSTS', df, 'median')
         #mode
     df = fillNaNwithGroupsMode(df, 'SKY', 'PRECIP')
     df = fillNaNwithGroupsMode(df, 'AC_CLASS', 'ATYPE')
@@ -175,6 +177,7 @@ def normalizeGrammar(df):
     df['PHASE_OF_FLT'] = df['PHASE_OF_FLT'].replace('approach', 'Approach')
     df['PHASE_OF_FLT'] = df['PHASE_OF_FLT'].replace('climb', 'Climb')
     df['PHASE_OF_FLT'] = df['PHASE_OF_FLT'].replace('descent', 'Descent')
+    
     return df
 
 def dropValues(df):
@@ -186,7 +189,7 @@ def dropValues(df):
                  'REMAINS_COLLECTED', 'REMAINS_SENT', 'AIRPORT_ID', 'FAAREGION', 'RUNWAY', 
                  'LOCATION', 'OTHER_SPECIFY', 'EFFECT_OTHER', 'SPECIES_ID', 'REMARKS', 
                  'COST_REPAIRS', 'COST_OTHER', 'REPORTED_DATE', 'SOURCE', 'WARNED', 'BIRDS_SEEN',
-                 'PERSON', 'DAMAGE'], axis=1)
+                 'PERSON', 'DAMAGE', 'COST_OTHER_INFL_ADJ', 'COST_REPAIRS_INFL_ADJ'], axis=1)
     #WARNED,BIRDS_SEEN,DAMAGE- usefull but contains too litle info
     
     states=['AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 
@@ -247,7 +250,7 @@ def main():
     print(test.isnull().sum())
     test.hist()
     '''
-    df.to_csv('Modified_dataset/wildlife-collisions.csv', encoding = "utf-8")
+    df.to_csv('Modified_dataset/wildlife-collisions.csv', encoding = 'utf-8')
     
     print('Done')
 
