@@ -183,10 +183,10 @@ def normalizeGrammar(df):
 def dropValues(df):
     df = df.drop(['TIME_OF_DAY', 'TIME'], axis=1)
     df.dropna(subset=['INCIDENT_DATE'], inplace=True) #drop nan rows in INCIDENT_DATE
-    df = df.drop(['INDEX_NR', 'REG', 'FLT', 'INCIDENT_MONTH', 'INCIDENT_YEAR', 'COMMENTS',  #Information here is compleatly useless
+    df = df.drop(['INDEX_NR', 'INCIDENT_MONTH', 'INCIDENT_YEAR', 'COMMENTS',  #Information here is compleatly useless
                   'TRANSFER', 'LUPDATE', 'REPORTED_NAME', 'REPORTED_TITLE'], axis=1)
-    df = df.drop(['OPID', 'AMA', 'AMO', 'EMA', 'EMO', 'ENG_1_POS', 'ENG_2_POS', 'ENG_3_POS', 'ENG_4_POS', #Information here could be used later if needed
-                 'REMAINS_COLLECTED', 'REMAINS_SENT', 'AIRPORT_ID', 'FAAREGION', 'RUNWAY', 
+    df = df.drop(['AMA', 'AMO', 'EMA', 'EMO', 'ENG_1_POS', 'ENG_2_POS', 'ENG_3_POS', 'ENG_4_POS', #Information here could be used later if needed
+                 'REMAINS_COLLECTED', 'REMAINS_SENT', 'FAAREGION', 'RUNWAY', 
                  'LOCATION', 'OTHER_SPECIFY', 'EFFECT_OTHER', 'SPECIES_ID', 'REMARKS', 
                  'COST_REPAIRS', 'COST_OTHER', 'REPORTED_DATE', 'SOURCE', 'WARNED', 'BIRDS_SEEN',
                  'PERSON', 'DAMAGE', 'COST_OTHER_INFL_ADJ', 'COST_REPAIRS_INFL_ADJ'], axis=1)
@@ -200,6 +200,7 @@ def dropValues(df):
        'DC', #Federal district till here
        'PR', 'VI', 'PI']#Inhabited territories till here
     df = df[df['STATE'].isin(states)]#drops all from outside USA
+    
     return df
     
 
@@ -240,9 +241,6 @@ def main():
     df = df.sort_values('INCIDENT_DATE')
     df = df.set_index('INCIDENT_DATE')
     
-    #remove all info out side of usa and could deal with nan values better maybe drop columns
-    print(df.isnull().sum())
-    
     '''
     #used to determin how to fill in nan values
     test = df['DAMAGE']
@@ -250,9 +248,16 @@ def main():
     print(test.isnull().sum())
     test.hist()
     '''
+    
+    df2015 = df.loc['2015-01-01 00:00:00':'2015-12-31 23:59:59']
+    df2015 = df2015[['REG', 'FLT', 'OPID', 'AIRPORT_ID']]
+    df2015.to_csv('Modified_dataset/wildlife-collisions2015.csv', encoding = 'utf-8')
+    
+    df = df.drop(['REG', 'FLT', 'OPID', 'AIRPORT_ID'], axis=1)
+    print(df.isnull().sum())
     df.to_csv('Modified_dataset/wildlife-collisions.csv', encoding = 'utf-8')
     
-    print('Done')
+    print('Done!')
 
     
 if __name__ == '__main__': #when program starts, start with main function

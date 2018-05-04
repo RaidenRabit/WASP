@@ -3,5 +3,7 @@ https://www.kaggle.com/faa/wildlife-strikes - dataset from kaggle (could be used
 https://www.transportation.gov/ - for more info about transport
 https://wildlife.faa.gov/downloads/StrikeReport1990-2012.pdf - info about bird strikes (could be used in report and presentation)
 http://aircharterguide.com/Operators (filling blank info)
+https://www.kaggle.com/freddejn/flights/data- dataset for flights
+https://openflights.org/data.html- forgot but used
 
 http://webarchive.nationalarchives.gov.uk/20151118171251/https://www.caa.co.uk/default.aspx?catid=2008&pageid=11326 - UK bird strikes

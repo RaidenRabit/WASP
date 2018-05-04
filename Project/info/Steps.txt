@@ -1,5 +1,0 @@
-1. Export all files from access to csv (done manualy, but maybe possible to automize)
-Data cleaning:
-2. Combine all csv files in one (run- CreateOneFile.py, changes needed depending on encoding)
-3. Clean the resulting file, by removing columns(run- ModifyData.py)
-4. Dealing with missing values (run- DealWithNaN.py)
