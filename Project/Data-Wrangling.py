@@ -223,11 +223,11 @@ def main():
     print(' Files Found')
     
     sys.stdout.write('Loading files...')
-    df=loadFiles() #20-115; reading raw data and putting it into 1 single file
+    df=loadFiles() #reading raw data and putting it into 1 single file
     print(' Files Loaded')
     
     sys.stdout.write('Handaling NaN values...')
-    df=handleNaN(df) #117-; handling NAN values
+    df=handleNaN(df) #handling NAN values
     print(' Handled NaN')
     
     sys.stdout.write('Formating data...')

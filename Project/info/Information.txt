@@ -5,5 +5,13 @@ https://wildlife.faa.gov/downloads/StrikeReport1990-2012.pdf - info about bird s
 http://aircharterguide.com/Operators (filling blank info)
 https://www.kaggle.com/freddejn/flights/data- dataset for flights
 https://openflights.org/data.html- forgot but used
+https://github.com/jpatokal/openflights/blob/master/data/airlines.dat - info about airports and flight operators
+
+Could be used for report:
+https://digitalcommons.unl.edu/cgi/viewcontent.cgi?article=1496&context=icwdm_usdanwrc
+https://www.quora.com/How-many-airplanes-fly-each-day-in-the-world
+https://en.wikipedia.org/wiki/Bird_strike
+http://airportlifestyle.com/bird-strikes/
+https://aviation.stackexchange.com/questions/23420/how-many-bird-strikes-are-there-per-year-any-world-wide-statistics
 
 http://webarchive.nationalarchives.gov.uk/20151118171251/https://www.caa.co.uk/default.aspx?catid=2008&pageid=11326 - UK bird strikes

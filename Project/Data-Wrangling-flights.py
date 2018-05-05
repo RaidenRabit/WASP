@@ -2,7 +2,6 @@
 """
 This file represents the Data-wrangling part organized according to BigData3 lessons
 """
-#https://github.com/jpatokal/openflights/blob/master/data/airlines.dat
 
 import pandas as pd
 import os
@@ -34,8 +33,91 @@ df['DEPARTURE_TIME'] = df['DEPARTURE_TIME'].astype(str).str.extract('(..:..:..)'
 df['ARRIVAL_TIME'] = pd.to_datetime((df['ARRIVAL_TIME'].abs() // 100 * 60) + (df['ARRIVAL_TIME'].abs() % 100), unit='m')
 df['ARRIVAL_TIME'] = df['ARRIVAL_TIME'].astype(str).str.extract('(..:..:..)', expand=True)
 
+'''
+#used to show where the airports are located in
+#########################################
+location = 'Modified_dataset/'
+dfCollisionFix = pd.read_csv(location+'airports.csv')
+dfCollisionFix = dfCollisionFix[['IATA', 'Country']]
+dfCollisionFix.dropna(subset=['IATA'], inplace=True)
+
+df = pd.merge(left = df, right = dfCollisionFix,  how='left', left_on=['ORIGIN_AIRPORT'], right_on = ['IATA'])
+dfCollisionFix = 1;
+df = df.drop(['ORIGIN_AIRPORT', 'IATA'], axis=1)
+#########################################
+
+df.to_csv('Modified_dataset/USA2015.csv')
+
+print('Done!')
+'''
+########################################################################################
+print('flights dataset cleaned')
+location = 'Modified_dataset/'
+types = {'REG': object, 'FLT': object, 'OPID': object, 'AIRPORT_ID': object}
+
+dfCollision = pd.read_csv(location+'wildlife-collisions2015.csv',
+                 parse_dates=['INCIDENT_DATE'],
+                 dtype=types)
+
+dfCollision['INCIDENT_DATE'] = dfCollision['INCIDENT_DATE'].astype(str).str.extract('(....-..-..)', expand=True)
+
+dfCollisionFix = pd.read_csv(location+'airlines.csv')
+dfCollisionFix = dfCollisionFix[['IATA', 'ICAO']]
+dfCollisionFix.dropna(subset=['ICAO'], inplace=True)
+
+dfCollision = pd.merge(left = dfCollision, right = dfCollisionFix,  how='left', left_on=['OPID'], right_on = ['ICAO'])
+dfCollision = dfCollision.drop(['OPID', 'ICAO'], axis=1)
+dfCollision = dfCollision.rename(columns={'IATA': 'airline'})
+
+dfCollisionFix = pd.read_csv(location+'airports.csv')
+dfCollisionFix = dfCollisionFix[['IATA', 'ICAO']]
+dfCollisionFix.dropna(subset=['ICAO'], inplace=True)
+
+dfCollision = pd.merge(left = dfCollision, right = dfCollisionFix,  how='left', left_on=['AIRPORT_ID'], right_on = ['ICAO'])
+dfCollisionFix = 1;
+dfCollision = dfCollision.drop(['AIRPORT_ID', 'ICAO'], axis=1)
+dfCollision = dfCollision.rename(columns={'IATA': 'airport'})
+
+########################################################################################
+print('wildlife-collisions2015 dataset cleaned')
+df['CRASHED'] = 0
+
+df = df.merge(right=dfCollision,left_on=['DATE', 'ORIGIN_AIRPORT', 'TAIL_NUMBER'],
+              right_on=['INCIDENT_DATE', 'airport', 'REG'], how='left')
+df.loc[df['INCIDENT_DATE'].notnull(), 'CRASHED'] = 1
+df = df[['DATE', 'AIRLINE', 'FLIGHT_NUMBER', 'TAIL_NUMBER', 'ORIGIN_AIRPORT',
+         'DESTINATION_AIRPORT', 'DEPARTURE_TIME', 'ARRIVAL_TIME', 'CRASHED']]
+print('1')
+
+#A flight number, when combined with the name of the airline and the date, identifies a particular flight.
+df = df.merge(right=dfCollision,left_on=['DATE', 'AIRLINE', 'FLIGHT_NUMBER'],
+              right_on=['INCIDENT_DATE', 'airline', 'FLT'], how='left')
+df.loc[df['INCIDENT_DATE'].notnull(), 'CRASHED'] = 1
+df = df[['DATE', 'AIRLINE', 'FLIGHT_NUMBER', 'TAIL_NUMBER', 'ORIGIN_AIRPORT',
+         'DESTINATION_AIRPORT', 'DEPARTURE_TIME', 'ARRIVAL_TIME', 'CRASHED']]
+print('2')
+
+df = df.merge(right=dfCollision,left_on=['DATE', 'DESTINATION_AIRPORT', 'TAIL_NUMBER'],
+              right_on=['INCIDENT_DATE', 'airport', 'REG'], how='left')
+df.loc[df['INCIDENT_DATE'].notnull(), 'CRASHED'] = 1
+df = df[['DATE', 'AIRLINE', 'FLIGHT_NUMBER', 'TAIL_NUMBER', 'ORIGIN_AIRPORT',
+         'DESTINATION_AIRPORT', 'DEPARTURE_TIME', 'ARRIVAL_TIME', 'CRASHED']]
+print('3')
+
+#A flight number, when combined with the name of the airline and the date, identifies a particular flight.
+df = df.merge(right=dfCollision,left_on=['DATE', 'AIRLINE', 'FLIGHT_NUMBER'],
+              right_on=['INCIDENT_DATE', 'airline', 'FLT'], how='left')
+df.loc[df['INCIDENT_DATE'].notnull(), 'CRASHED'] = 1
+df = df[['DATE', 'AIRLINE', 'FLIGHT_NUMBER', 'TAIL_NUMBER', 'ORIGIN_AIRPORT',
+         'DESTINATION_AIRPORT', 'DEPARTURE_TIME', 'ARRIVAL_TIME', 'CRASHED']]
+print('4')
+
+print(df.shape)
+print(df.isnull().sum())
+print(df['CRASHED'].value_counts())
+
 df = df.set_index('DATE')
 
-df.to_csv('Modified_dataset/2015.csv')
+df.to_csv(location+'wildlife-collisions_Joined2015.csv')
 
 print('Done!')
