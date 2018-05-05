@@ -9,12 +9,11 @@ import numpy as np
 
 os.chdir('dataset/Modified_dataset/') #set working directory
 
-types = {'AIRLINE': object, 'FLIGHT_NUMBER': int, 
+types = {'DATE': object, 'AIRLINE': object, 'FLIGHT_NUMBER': int, 
          'TAIL_NUMBER': object, 'ORIGIN_AIRPORT': object, 'DESTINATION_AIRPORT': object, 
          'DEPARTURE_TIME': object, 'ARRIVAL_TIME': object, 'CRASHED': int}
    
 df = pd.read_csv('wildlife-collisions_Joined2015.csv',
-                 parse_dates=['DATE'],
                  dtype=types)
 
 #print(df.corr())
@@ -25,27 +24,25 @@ df = pd.read_csv('wildlife-collisions_Joined2015.csv',
 
 #X- features
 #y- lable
-'''
-from sklearn import cross_validation
-from sklearn.linear_model import LinearRegression
 
-predict = 'CRASHED'
+from sklearn import tree
+from sklearn import cross_validation
+
 X = df[['FLIGHT_NUMBER']]
-y = df[predict]
+y = df[['CRASHED']]
 
 X_train, X_test, y_train, y_test = cross_validation.train_test_split(X, y, test_size=0.3, random_state=7)
-
-model = LinearRegression(n_jobs=-1)#n_jobs how many threads to use
+model = tree.DecisionTreeClassifier()
 model.fit(X_train, y_train)
 accuracy = model.score(X_test, y_test)
 print(accuracy)
-'''
+
 '''
 from mpl_toolkits.mplot3d import Axes3D 
 from sklearn.cluster import KMeans 
 import matplotlib.pyplot as plt
 
-X = np.array(df[['AC_MASS', 'NUM_ENGS', 'COSTS']])
+X = np.array(df[['FLIGHT_NUMBER', 'CRASHED', 'COSTS']])
 
 est = KMeans(n_clusters=7)
 est.fit(X)
