@@ -64,8 +64,7 @@ dfCollision = pd.read_csv(location+'wildlife-collisions2015.csv',
 dfCollision['INCIDENT_DATE'] = dfCollision['INCIDENT_DATE'].astype(str).str.extract('(....-..-..)', expand=True)
 dfCollision['Year'], dfCollision['Month'], dfCollision['Day'] = dfCollision['INCIDENT_DATE'].str.split('-').str
 dfCollision = dfCollision.drop(['INCIDENT_DATE', 'Year'], axis=1)
-dfCollision['Month'] = dfCollision['Month'].astype(str).astype(int)
-dfCollision['Day'] = dfCollision['Day'].astype(str).astype(int)
+dfCollision[['Month','Day']] = dfCollision[['Month','Day']].apply(pd.to_numeric)
 
 dfCollisionFix = pd.read_csv(location+'airlines.csv')
 dfCollisionFix = dfCollisionFix[['IATA', 'ICAO']]
@@ -84,8 +83,6 @@ dfCollisionFix = 1;
 dfCollision = dfCollision.drop(['AIRPORT_ID', 'ICAO'], axis=1)
 dfCollision = dfCollision.rename(columns={'IATA': 'airport'})
 
-print(df['MONTH'].value_counts())
-print(dfCollision['Month'].value_counts())
 ########################################################################################
 print('wildlife-collisions2015 dataset cleaned')
 df['CRASHED'] = 0
@@ -94,8 +91,6 @@ def merge(left,right,df):
     df = df.merge(right=dfCollision,left_on=left,
               right_on=right, how='left')
     df.loc[df['Month'].notnull(), 'CRASHED'] = 1
-    #check months with crashes
-    print(df.groupby('MONTH')['CRASHED'].value_counts())
     return df[['MONTH', 'DAY', 'AIRLINE', 'FLIGHT_NUMBER', 'TAIL_NUMBER', 
          'ORIGIN_AIRPORT', 'DESTINATION_AIRPORT', 
          'DEPARTURE_TIME', 'ARRIVAL_TIME', 'DAY_OF_WEEK',
@@ -120,6 +115,9 @@ print('3')
 #A flight number, when combined with the name of the airline and the date, identifies a particular flight.
 df = merge(['MONTH', 'DAY', 'AIRLINE', 'FLIGHT_NUMBER'],['Month', 'Day', 'airline', 'FLT'],df)
 print('4')
+
+#check months with crashes
+print(df.groupby('MONTH')['CRASHED'].value_counts())
 
 df.fillna(0, inplace=True)
 
