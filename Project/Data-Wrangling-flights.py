@@ -10,7 +10,7 @@ os.chdir('dataset') #set working directory
 
 location = 'Extracted_dataset/'
 types = {'YEAR': int, 'MONTH': int, 'DAY': int, 'DAY_OF_WEEK': int, 'AIRLINE': object,
-         'FLIGHT_NUMBER': int, 'TAIL_NUMBER': object, 'ORIGIN_AIRPORT': object, 
+         'FLIGHT_NUMBER': object, 'TAIL_NUMBER': object, 'ORIGIN_AIRPORT': object, 
          'DESTINATION_AIRPORT': object, 'DEPARTURE_TIME': float, 'ARRIVAL_TIME': float,
          'SCHEDULED_DEPARTURE': int, 'DEPARTURE_DELAY': float, 'TAXI_OUT': float, 
          'WHEELS_OFF': float, 'SCHEDULED_TIME': float, 'ELAPSED_TIME': float, 
@@ -79,7 +79,10 @@ dfCollisionFix = dfCollisionFix[['IATA', 'ICAO']]
 dfCollisionFix.dropna(subset=['ICAO'], inplace=True)
 
 dfCollision = pd.merge(left = dfCollision, right = dfCollisionFix,  how='left', left_on=['AIRPORT_ID'], right_on = ['ICAO'])
-dfCollisionFix = 1;
+
+#to save memmory
+dfCollisionFix = 1
+
 dfCollision = dfCollision.drop(['AIRPORT_ID', 'ICAO'], axis=1)
 dfCollision = dfCollision.rename(columns={'IATA': 'airport'})
 
@@ -102,19 +105,19 @@ def merge(left,right,df):
          'SECURITY_DELAY', 'AIRLINE_DELAY', 'LATE_AIRCRAFT_DELAY', 
          'WEATHER_DELAY', 'CRASHED']]
 
+#doesnt work on october becouse the values (ORIGIN_AIRPORT and DESTINATION_AIRPORT) are not representative 
 df = merge(['MONTH', 'DAY', 'ORIGIN_AIRPORT', 'TAIL_NUMBER'],['Month', 'Day', 'airport', 'REG'],df)
 print('1')
 
-#A flight number, when combined with the name of the airline and the date, identifies a particular flight.
-df = merge(['MONTH', 'DAY', 'AIRLINE', 'FLIGHT_NUMBER'],['Month', 'Day', 'airline', 'FLT'],df)
+df = merge(['MONTH', 'DAY', 'DESTINATION_AIRPORT', 'TAIL_NUMBER'],['Month', 'Day', 'airport', 'REG'],df)
 print('2')
 
-df = merge(['MONTH', 'DAY', 'DESTINATION_AIRPORT', 'TAIL_NUMBER'],['Month', 'Day', 'airport', 'REG'],df)
-print('3')
-
 #A flight number, when combined with the name of the airline and the date, identifies a particular flight.
 df = merge(['MONTH', 'DAY', 'AIRLINE', 'FLIGHT_NUMBER'],['Month', 'Day', 'airline', 'FLT'],df)
-print('4')
+print('3')
+
+#to save memmory
+dfCollision = 1
 
 #check months with crashes
 print(df.groupby('MONTH')['CRASHED'].value_counts())

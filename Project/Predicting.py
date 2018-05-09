@@ -6,6 +6,7 @@ This file represents the prediction part organized according to BigData3 lessons
 import os
 import pandas as pd 
 import numpy as np
+pd.options.mode.chained_assignment = None  # default='warn'
 
 os.chdir('dataset/Modified_dataset/') #set working directory
 
@@ -62,7 +63,7 @@ print(np.asarray((unique_elements, counts_elements)))
 
 pd.DataFrame(predicted).hist()
 '''
-
+'''
 #Show corolations
 from mpl_toolkits.mplot3d import Axes3D 
 import matplotlib.pyplot as plt
@@ -79,3 +80,4 @@ ax.set_xlabel('MONTH')
 ax.set_ylabel('CRASHED')
 ax.set_zlabel('DAY_OF_WEEK')
 plt.show()
+'''
