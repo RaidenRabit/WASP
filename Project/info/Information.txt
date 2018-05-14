@@ -7,7 +7,7 @@ http://aircharterguide.com/Operators (filling blank info)
 https://www.kaggle.com/freddejn/flights/data- dataset for flights
 https://openflights.org/data.html - info about airports and flight operators
 https://datascience.stackexchange.com/questions/16700/confused-about-how-to-apply-kmeans-on-my-a-dataset-with-features-extracted - how to use unsupervised learning
-
 http://www.awesomestats.in/python-cluster-validation/ for finding cluster number
+
 maybe for latter:
 http://webarchive.nationalarchives.gov.uk/20151118171251/https://www.caa.co.uk/default.aspx?catid=2008&pageid=11326 - UK bird strikes
