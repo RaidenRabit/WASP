@@ -25,7 +25,7 @@ types = {'MONTH': int, 'DAY': int, 'DAY_OF_WEEK': int, 'AIRLINE': object,
          'SCHEDULED_ARRIVAL': int, 'ARRIVAL_DELAY': float, 'DIVERTED': int, 
          'CANCELLED': int, 'CANCELLATION_REASON': object, 'AIR_SYSTEM_DELAY': float, 
          'SECURITY_DELAY': float, 'AIRLINE_DELAY': float, 'LATE_AIRCRAFT_DELAY': float, 
-         'WEATHER_DELAY': float, 'CRASHED': int}
+         'WEATHER_DELAY': float, 'CRASHED': int, 'ORIGIN_STATE': object, 'DESTINATION_STATE': object}
    
 df = pd.read_csv('wildlife-collisions_Joined2015.csv',
                  dtype=types)
@@ -68,10 +68,13 @@ def ElbowAnalysis(df):
     plt.show()
 
 #Unsupervised learning using k means
-def Unsupervised(df, predict = 100):
-    #could be scaled
-    reduced_data = PCA(n_components=2).fit_transform(df[:-predict])
-    kmeans = KMeans(init='k-means++', n_clusters=4, n_init=10).fit(reduced_data)
+def Unsupervised(df, predict = 100, clusters=4):
+    #Scaling- mean=0 std=1
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(df)
+    
+    reduced_data = PCA(n_components=2).fit_transform(X_scaled[:-predict])
+    kmeans = KMeans(init='k-means++', n_clusters=clusters, n_init=10).fit(reduced_data)
     df['clusters'] = np.nan
     df['clusters'][:-predict] = kmeans.labels_
 
@@ -89,10 +92,11 @@ def Unsupervised(df, predict = 100):
     plt.show()
 
     #Prediction
-    reduced_data = PCA(n_components=2).fit_transform(df.loc[:, df.columns != 'clusters'][-predict:])
+    reduced_data = PCA(n_components=2).fit_transform(X_scaled[-predict:])
     Z = kmeans.predict(reduced_data)
     df['clusters'][-predict:] = Z
     unique_elements, counts_elements = np.unique(Z, return_counts=True)
+    print('Prediction results:')
     print(np.asarray((unique_elements, counts_elements)))
 
     cluster = df.loc[df.groupby(['clusters']).mean()['CRASHED'].idxmax(), 'clusters']
@@ -119,5 +123,5 @@ def Supervised(df, predict = 100, Column_y = 'CRASHED'):
 if __name__ == '__main__': #when program starts, start with main function
     #ElbowAnalysis(df)
     df = Unsupervised(df)
-    Supervised(df)
+    #Supervised(df)
     

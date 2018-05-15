@@ -1,13 +1,13 @@
 Used for project:
 https://wildlife.faa.gov/databaseSearch.aspx - the original dataset
-https://www.kaggle.com/faa/wildlife-strikes - dataset from kaggle (could be used as example)
-https://www.transportation.gov/ - for more info about transport
-https://wildlife.faa.gov/downloads/StrikeReport1990-2012.pdf - info about bird strikes (could be used in report and presentation)
-http://aircharterguide.com/Operators (filling blank info)
+http://aircharterguide.com/Operators data normalisation (finding right information to fill in)
 https://www.kaggle.com/freddejn/flights/data- dataset for flights
 https://openflights.org/data.html - info about airports and flight operators
 https://datascience.stackexchange.com/questions/16700/confused-about-how-to-apply-kmeans-on-my-a-dataset-with-features-extracted - how to use unsupervised learning
 http://www.awesomestats.in/python-cluster-validation/ for finding cluster number
+https://data.humdata.org/dataset/ourairports-usa for finding state of airport based on iata code
 
 maybe for latter:
+https://www.transportation.gov/ - for more info about transport
+https://wildlife.faa.gov/downloads/StrikeReport1990-2012.pdf - info about bird strikes (could be used in report and presentation)
 http://webarchive.nationalarchives.gov.uk/20151118171251/https://www.caa.co.uk/default.aspx?catid=2008&pageid=11326 - UK bird strikes
