@@ -99,15 +99,14 @@ def Unsupervised(df, predict = 100, clusters=4):
     print('Prediction results:')
     print(np.asarray((unique_elements, counts_elements)))
 
-    cluster = df.loc[df.groupby(['clusters']).mean()['CRASHED'].idxmax(), 'clusters']
-    df = df.loc[df['clusters'] == cluster]
-    return df.drop(['clusters'], axis=1)
+    return df
 
 
 #Supervised learning using the decision tree
 #X- feature
 #y- lable
 def Supervised(df, predict = 100, Column_y = 'CRASHED'):
+    print('aaa')
     X = df.drop([Column_y], axis=1)
     y = df[[Column_y]]
 
@@ -123,5 +122,5 @@ def Supervised(df, predict = 100, Column_y = 'CRASHED'):
 if __name__ == '__main__': #when program starts, start with main function
     #ElbowAnalysis(df)
     df = Unsupervised(df)
-    #Supervised(df)
+    Supervised(df)
     
