@@ -69,6 +69,7 @@ def ElbowAnalysis(df):
 
 #Unsupervised learning using k means
 def Unsupervised(df, predict = 100, clusters=4):
+    print('Unsupervised')
     #Scaling- mean=0 std=1
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(df)
@@ -82,7 +83,7 @@ def Unsupervised(df, predict = 100, clusters=4):
     print(df.groupby(['clusters']).mean())
     unique_elements, counts_elements = np.unique(kmeans.labels_, return_counts=True)
     print(np.asarray((unique_elements, counts_elements)))
-
+    '''
     #Visualization of actual data
     plt.scatter(reduced_data[:,0], reduced_data[:,1], c=kmeans.labels_, cmap='rainbow')  
     plt.scatter(kmeans.cluster_centers_[:,0] ,kmeans.cluster_centers_[:,1], marker='x', color='w')   
@@ -90,7 +91,7 @@ def Unsupervised(df, predict = 100, clusters=4):
     plt.xticks(())
     plt.yticks(())
     plt.show()
-
+    '''
     #Prediction
     reduced_data = PCA(n_components=2).fit_transform(X_scaled[-predict:])
     Z = kmeans.predict(reduced_data)
@@ -106,7 +107,7 @@ def Unsupervised(df, predict = 100, clusters=4):
 #X- feature
 #y- lable
 def Supervised(df, predict = 100, Column_y = 'CRASHED'):
-    print('aaa')
+    print('Supervised')
     X = df.drop([Column_y], axis=1)
     y = df[[Column_y]]
 
@@ -119,8 +120,15 @@ def Supervised(df, predict = 100, Column_y = 'CRASHED'):
     print(model.predict(X[-predict:]))
     print(y[-predict:])
     
+    print('Make tree happen')
+    import graphviz 
+    dot_data = tree.export_graphviz(model, out_file=None) 
+    graph = graphviz.Source(dot_data) 
+    graph.render('tree.pdf')
+    
 if __name__ == '__main__': #when program starts, start with main function
     #ElbowAnalysis(df)
     df = Unsupervised(df)
     Supervised(df)
+    print('Done!')
     
