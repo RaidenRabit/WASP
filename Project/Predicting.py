@@ -34,7 +34,10 @@ df = pd.read_csv('wildlife-collisions_Joined2015.csv',
 #df = pd.get_dummies(df, columns=['SIZE'])
 
 not added:
-'AIRLINE' 'FLIGHT_NUMBER' 'TAIL_NUMBER' 'ORIGIN_AIRPORT' 'DESTINATION_AIRPORT' 'CANCELLATION_REASON' 'CANCELLED'
+'AIRLINE' 'FLIGHT_NUMBER' 'TAIL_NUMBER' 'ORIGIN_AIRPORT' 'DESTINATION_AIRPORT' 
+'CANCELLATION_REASON' 'CANCELLED' 'ORIGIN_STATE' 'DESTINATION_STATE'
+
+use info that we will know before hand
 '''
 
 df = df[['MONTH', 'DAY', 'DEPARTURE_TIME', 'ARRIVAL_TIME', 'DAY_OF_WEEK',
@@ -120,7 +123,7 @@ def Supervised(df, predict = 100, Column_y = 'CRASHED'):
     print(model.predict(X[-predict:]))
     print(y[-predict:])
     
-    print('Make tree happen')
+    print('Make tree happen!')
     import graphviz 
     dot_data = tree.export_graphviz(model, out_file=None) 
     graph = graphviz.Source(dot_data) 
