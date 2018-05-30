@@ -115,24 +115,27 @@ def Supervised(df, predict = 100, Column_y = 'CRASHED'):
     y = df[[Column_y]]
 
     X_train, X_test, y_train, y_test = cross_validation.train_test_split(X[:-predict], y[:-predict], test_size=0.3, random_state=7)
-    model = tree.DecisionTreeClassifier(random_state=17, min_impurity_decrease=0.2)
+    model = tree.DecisionTreeClassifier(random_state=17, min_impurity_decrease=0.000001)
     model.fit(X_train, y_train)
     accuracy = model.score(X_test, y_test)
     print(accuracy)
 
     print(model.predict(X[-predict:]))
     print(y[-predict:])
-    '''
+    
     print('Make tree happen!')
     import graphviz 
-    dot_data = tree.export_graphviz(model, out_file=None, feature_names=X.columns, filled=True, rounded=True, special_characters=True) 
+    dot_data = tree.export_graphviz(model, out_file=None, feature_names=X.columns, 
+                                    class_names=['Not Crushed', 'Crushed'], filled=True, 
+                                    rounded=True, special_characters=True) 
     graph = graphviz.Source(dot_data) 
     graph.format = 'png'
     graph.render('iris', view=True)
-    '''
+    
 if __name__ == '__main__': #when program starts, start with main function
     #ElbowAnalysis(df)
     df = Unsupervised(df)
+    
     Supervised(df)
     print('Done!')
     
