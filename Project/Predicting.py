@@ -144,7 +144,7 @@ def Supervised(df, predict = 100, Column_y = 'CRASHED'):
     
 if __name__ == '__main__': #when program starts, start with main function
     #ElbowAnalysis(df)
-    Unsupervised(df)
-    #Supervised(df)
+    #Unsupervised(df)
+    Supervised(df)
     print('Done!')
     
