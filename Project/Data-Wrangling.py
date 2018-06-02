@@ -230,6 +230,11 @@ def main():
     df=handleNaN(df) #handling NAN values
     print(' Handled NaN')
     
+    from scipy import stats
+    grouped_test2=df[['INDICATED_DAMAGE','COSTS']].groupby(['INDICATED_DAMAGE'])
+    f_val, p_val = stats.f_oneway(grouped_test2.get_group(True)['COSTS'], grouped_test2.get_group(False)['COSTS'])  
+    print( "ANOVA results: F=", f_val, ", P =", p_val )
+    
     sys.stdout.write('Formating data...')
     df=dataFormating(df) #formating columns to appropriate data types
     print(' Data Formated')
@@ -247,6 +252,11 @@ def main():
     print(test.value_counts())
     print(test.isnull().sum())
     test.hist()
+    
+    from scipy import stats
+    grouped_test2=df[['INDICATED_DAMAGE','COSTS']].groupby(['INDICATED_DAMAGE'])
+    f_val, p_val = stats.f_oneway(grouped_test2.get_group(True)['COSTS'], grouped_test2.get_group(False)['COSTS'])  
+    print( "ANOVA results: F=", f_val, ", P =", p_val )
     '''
     
     df2015 = df.loc['2015-01-01 00:00:00':'2015-12-31 23:59:59']
